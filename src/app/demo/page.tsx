@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChannelIcon } from "@/components/icons/ChannelIcons";
+import { SERVICES } from "@/lib/photos";
 
 type Prov = "meta" | "nvidia";
 type Lead = { id: string; name: string; company: string; source: string; email: string; phone: string; note: string; score: number };
@@ -50,29 +52,49 @@ export default function Demo() {
   );
 }
 
+const SKIN = {
+  whatsapp: { head: "bg-[#075E54]", body: "bg-[#0b141a] bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:14px_14px]", me: "bg-[#005C4B] text-white rounded-lg rounded-tr-none", them: "bg-[#202C33] text-slate-100 rounded-lg rounded-tl-none", input: "bg-[#2A3942] rounded-full", send: "bg-[#25D366] text-black", name: "Chioma O.", status: "online" },
+  messenger: { head: "bg-white/95 text-slate-900", body: "bg-white", me: "bg-gradient-to-br from-[#0099FF] via-[#A033FF] to-[#FF5280] text-white rounded-2xl", them: "bg-[#F0F0F0] text-slate-900 rounded-2xl", input: "bg-[#F0F2F5] text-slate-900 rounded-full", send: "bg-[#0084FF] text-white", name: "Tonye Briggs", status: "Active now" },
+  instagram: { head: "bg-black border-b border-white/10", body: "bg-black", me: "bg-[#3797F0] text-white rounded-3xl", them: "bg-[#262626] text-white rounded-3xl", input: "bg-black border border-white/20 rounded-full", send: "text-[#3797F0] font-bold", name: "ada.weds.2026", status: "Active 2m ago" },
+} as const;
 function Inbox({ prov, onBook }: { prov: Prov; onBook: (slot: string, ch: string) => void }) {
   const [threads, setThreads] = useState(SEED);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [active, setActive] = useState<keyof typeof CH>("whatsapp");
+  const [view, setView] = useState<"single" | "all">("single");
+  const [st, setSt] = useState<Record<string, { status: string }> | null>(null);
+  useEffect(() => { fetch("/api/channels").then((r) => r.json()).then(setSt).catch(() => {}); }, []);
   const run = async (ch: string, list: Msg[]) => {
     setBusy(ch); const r = await post("/api/assist", { channel: ch, history: list, provider: prov }); setBusy(null);
     const out: Msg[] = [...list, { from: "agent", text: r.text, meta: `${r.provider} · ${r.model}${r.handoff ? " · HANDOFF" : ""}${r.booked ? ` · BOOKED ${r.booked}` : ""}` }];
     setThreads((t) => ({ ...t, [ch]: out })); if (r.booked) onBook(r.booked, ch);
   };
   const send = (ch: string) => { const v = (draft[ch] ?? "").trim(); if (!v) return; const list = [...threads[ch], { from: "customer" as const, text: v }]; setThreads((t) => ({ ...t, [ch]: list })); setDraft((d) => ({ ...d, [ch]: "" })); run(ch, list); };
+  const Pane = ({ ch }: { ch: keyof typeof CH }) => { const k = SKIN[ch]; const list = threads[ch]; const live = st?.[ch]?.status === "connected"; return (
+    <div className="flex h-[560px] flex-col overflow-hidden rounded-2xl ring-1 ring-white/10 shadow-2xl">
+      <div className={`flex items-center gap-3 px-3 py-2.5 ${k.head}`}><ChannelIcon ch={ch} size={30} /><div className="flex-1 leading-tight"><b className="text-sm">{k.name}</b><div className="text-[11px] opacity-70">{busy === ch ? "typing…" : k.status} · {CH[ch][0]}</div></div>
+        <span className={`tip rounded-full px-2 py-0.5 text-[10px] ${live ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`} data-tip={live ? "Live via Meta webhook + Graph API" : "Seeded demo thread — add Meta credentials in Vercel to go live"}>{live ? "LIVE" : "DEMO"}</span></div>
+      <div className={`flex-1 space-y-2 overflow-y-auto p-3 ${k.body}`}>
+        <div className="mx-auto w-fit rounded-md bg-black/30 px-2 py-0.5 text-[10px] text-slate-400 tip" data-tip="Customer messaged first → 24h service window open">Customer started this chat · inbound only ✓</div>
+        {list.map((m, i) => (
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} key={i} className={`max-w-[85%] px-3 py-2 text-sm shadow ${m.from === "customer" ? k.them : "ml-auto " + k.me}`}>
+            {m.text}{m.meta && <div className="mt-1 text-[10px] opacity-70">{m.meta}</div>}</motion.div>))}
+        {busy === ch && <div className={`w-fit px-3 py-2 text-sm ml-auto ${k.me}`}>• • •</div>}
+      </div>
+      {list.at(-1)?.from === "customer" && busy !== ch && <button className="btn m-2 text-sm" onClick={() => run(ch, list)}>Let SalesCrew reply</button>}
+      <div className={`flex items-center gap-2 p-2 ${ch === "messenger" ? "bg-white" : ch === "instagram" ? "bg-black" : "bg-[#202C33]"}`}><input value={draft[ch] ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [ch]: e.target.value }))} onKeyDown={(e) => e.key === "Enter" && send(ch)} placeholder={ch === "instagram" ? "Message…" : ch === "messenger" ? "Aa" : "Type a message (as customer)"} className={`flex-1 px-3 py-2 text-sm outline-none ${k.input}`} /><button className={`rounded-full px-3 py-2 text-sm ${k.send}`} onClick={() => send(ch)}>{ch === "instagram" ? "Send" : "➤"}</button></div>
+    </div>); };
   return (<>
-    <p className="mb-3 text-sm text-slate-400">Simulated inboxes. The agent only answers threads the customer started, stays on Amaka&apos;s services, books slots, and hands off on <b>HUMAN</b> or off-topic. Try: “Saturday 12:00 works”, or “who will win the election?”.</p>
-    <div className="grid gap-4 md:grid-cols-3">{Object.entries(threads).map(([ch, list]) => (
-      <div key={ch} className="glass flex h-[520px] flex-col p-3">
-        <div className="mb-2 flex items-center justify-between"><b style={{ color: CH[ch as keyof typeof CH][1] }}>{CH[ch as keyof typeof CH][0]}</b><span className="tip text-[10px] text-slate-400" data-tip="Customer messaged first → 24h service window open">inbound ✓</span></div>
-        <div className="flex-1 space-y-2 overflow-y-auto pr-1">{list.map((m, i) => (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} key={i} className={`max-w-[88%] rounded-xl px-3 py-2 text-sm ${m.from === "customer" ? "bg-slate-700/60" : "ml-auto bg-emerald-500/15 border border-emerald-400/30"}`}>
-            {m.text}{m.meta && <div className="mt-1 text-[10px] text-emerald-300/80">{m.meta}</div>}</motion.div>))}
-          {busy === ch && <div className="ml-auto w-fit rounded-xl bg-emerald-500/10 px-3 py-2 text-xs neon">SalesCrew is typing…</div>}
-        </div>
-        {list.at(-1)?.from === "customer" && busy !== ch && <button className="btn mt-2 text-sm" onClick={() => run(ch, list)}>Let SalesCrew reply</button>}
-        <div className="mt-2 flex gap-2"><input value={draft[ch] ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [ch]: e.target.value }))} onKeyDown={(e) => e.key === "Enter" && send(ch)} placeholder="Reply as customer…" className="flex-1 rounded-lg bg-black/40 px-2 py-1.5 text-sm outline-none ring-1 ring-emerald-400/20" /><button className="btn-ghost text-sm" onClick={() => send(ch)}>Send</button></div>
-      </div>))}</div></>);
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex gap-2">{(Object.keys(CH) as (keyof typeof CH)[]).map((c) => <button key={c} onClick={() => { setActive(c); setView("single"); }} className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm ${view === "single" && active === c ? "ring-2" : "glass"}`} style={view === "single" && active === c ? { background: CH[c][1] + "33", boxShadow: `0 0 0 2px ${CH[c][1]}` } : undefined}><ChannelIcon ch={c} size={18} />{CH[c][0]}<span className="rounded-full bg-white/10 px-1.5 text-[10px]">{threads[c].length}</span></button>)}
+        <button onClick={() => setView("all")} className={`rounded-xl px-3 py-1.5 text-sm ${view === "all" ? "btn" : "glass"}`}>All 3</button></div>
+      <p className="max-w-xl text-xs text-slate-400">The agent only answers threads the customer started, stays on Amaka&apos;s services, books slots, and hands off on <b>HUMAN</b> or off-topic. Try “Saturday 12:00 works” or “who will win the election?”.</p>
+    </div>
+    {view === "all" ? <div className="grid gap-4 md:grid-cols-3">{(Object.keys(CH) as (keyof typeof CH)[]).map((c) => <div key={c}>{Pane({ ch: c })}</div>)}</div> :
+      <div className="grid gap-4 md:grid-cols-[1fr_280px]">{Pane({ ch: active })}
+        <div className="glass space-y-2 p-3"><b className="text-sm neon">Catalogue the agent quotes from</b>{SERVICES.map((v) => <div key={v.title} className="flex gap-2 rounded-lg bg-black/30 p-1.5"><img src={v.img} alt={v.title} className="h-12 w-12 rounded-md object-cover" /><div className="text-[11px]"><b>{v.title}</b><div className="text-slate-400">{v.desc}</div></div></div>)}</div></div>}
+  </>);
 }
 
 function Leads() {
@@ -139,13 +161,18 @@ function Site({ prov }: { prov: Prov }) {
 
 function Settings({ prov, setProv }: { prov: Prov; setProv: (p: Prov) => void }) {
   const [h, setH] = useState<Record<string, unknown> | null>(null); const [ping, setPing] = useState<Record<string, unknown> | null>(null);
-  useEffect(() => { fetch("/api/health").then((r) => r.json()).then(setH); }, []);
+  const [chs, setChs] = useState<Record<string, { status?: string; missing: string[]; ready?: boolean; url?: string }> | null>(null);
+  useEffect(() => { fetch("/api/health").then((r) => r.json()).then(setH); fetch("/api/channels").then((r) => r.json()).then(setChs); }, []);
   return (<div className="grid gap-4 md:grid-cols-2">
     <div className="glass p-5"><h2 className="text-xl font-bold">AI provider order</h2>
       {(["meta", "nvidia"] as Prov[]).map((p) => <label key={p} className="mt-3 flex cursor-pointer items-center gap-3 rounded-lg bg-black/30 p-3"><input type="radio" checked={prov === p} onChange={() => setProv(p)} /><span>{p === "meta" ? "Meta Model API primary (Muse Spark) → NVIDIA Nemotron fallback" : "NVIDIA Nemotron primary → Meta fallback"}</span></label>)}
       <button className="btn mt-4" onClick={async () => setPing(await (await fetch(`/api/health?ping=${prov}`)).json())}>Test connection</button>
       {ping && <pre className="mt-3 text-xs text-slate-300">{JSON.stringify(ping, null, 2)}</pre>}</div>
     <div className="glass p-5"><h3 className="font-bold">Guardrails (Meta 2026 messaging policy)</h3><ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-300"><li>Replies only to user-initiated threads (inside the service window)</li><li>Scope: prices, availability, bookings, order status, delivery, rescheduling</li><li>Off-topic → polite refusal + human handoff</li><li>“HUMAN” pauses the agent on that thread</li><li>Outbound emails are owner-approved drafts</li></ul>
+      <h3 className="mt-4 font-bold">Messaging channels</h3>
+      <div className="mt-2 space-y-2">{chs && (["whatsapp", "messenger", "instagram"] as const).map((c) => { const x = chs[c]; const label = x.status === "connected" ? ["Connected", "text-emerald-300 bg-emerald-500/15"] : x.status === "missing" ? ["Missing credentials", "text-rose-300 bg-rose-500/15"] : ["Demo mode", "text-amber-300 bg-amber-500/15"]; return (
+        <div key={c} className="flex items-center gap-3 rounded-lg bg-black/30 p-2"><ChannelIcon ch={c} size={26} /><div className="flex-1 text-sm"><b>{CH[c][0]}</b>{x.missing.length > 0 && <div className="text-[10px] text-slate-400">needs: {x.missing.join(", ")}</div>}</div><span className={`tip rounded-full px-2 py-0.5 text-[11px] ${label[1]}`} data-tip="Secrets are never shown — only whether they are set">{label[0]}</span></div>); })}
+        {chs && <p className="text-[11px] text-slate-400">Webhook callback: <code>{typeof window !== "undefined" ? window.location.origin : ""}{chs.webhook.url}</code> · subscribe to <code>messages</code></p>}</div>
       <h3 className="mt-4 font-bold">Server status</h3><pre className="text-xs text-slate-400">{JSON.stringify(h, null, 2)}</pre></div>
   </div>);
 }

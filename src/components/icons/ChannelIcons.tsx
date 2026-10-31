@@ -1,0 +1,11 @@
+type P = { size?: number; className?: string };
+export const WhatsAppIcon = ({ size = 24, className }: P) => (
+  <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-label="WhatsApp"><circle cx="16" cy="16" r="16" fill="#25D366" />
+    <path fill="#fff" d="M16 7.2a8.8 8.8 0 0 0-7.6 13.2L7.2 24.8l4.5-1.2A8.8 8.8 0 1 0 16 7.2Zm0 16.1a7.3 7.3 0 0 1-3.7-1l-.3-.2-2.7.7.7-2.6-.2-.3A7.3 7.3 0 1 1 16 23.3Zm4-5.5c-.2-.1-1.3-.6-1.5-.7-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6 6 0 0 1-3-2.6c-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.4a.8.8 0 0 0-.6.3 2.5 2.5 0 0 0-.8 1.9 4.4 4.4 0 0 0 .9 2.3 10 10 0 0 0 3.9 3.4c1.4.6 2 .7 2.7.6a2.3 2.3 0 0 0 1.5-1.1 1.9 1.9 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3Z" /></svg>);
+export const MessengerIcon = ({ size = 24, className }: P) => (
+  <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-label="Messenger"><defs><radialGradient id="msg" cx="20%" cy="100%" r="120%"><stop offset="0" stopColor="#0099FF" /><stop offset=".6" stopColor="#A033FF" /><stop offset=".9" stopColor="#FF5280" /><stop offset="1" stopColor="#FF7061" /></radialGradient></defs>
+    <circle cx="16" cy="16" r="16" fill="url(#msg)" /><path fill="#fff" d="M16 6.5c-5.4 0-9.5 3.9-9.5 9.2 0 2.8 1.1 5.2 3 6.8v3l2.8-1.6c1.1.3 2.3.5 3.7.5 5.4 0 9.5-3.9 9.5-9.2S21.4 6.5 16 6.5Zm1 12.3-2.4-2.6-4.7 2.6 5.2-5.5 2.5 2.6 4.6-2.6-5.2 5.5Z" /></svg>);
+export const InstagramIcon = ({ size = 24, className }: P) => (
+  <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-label="Instagram"><defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0" stopColor="#FDF497" /><stop offset=".05" stopColor="#FDF497" /><stop offset=".45" stopColor="#FD5949" /><stop offset=".6" stopColor="#D6249F" /><stop offset=".9" stopColor="#285AEB" /></radialGradient></defs>
+    <rect width="32" height="32" rx="8" fill="url(#ig)" /><rect x="8" y="8" width="16" height="16" rx="4.5" fill="none" stroke="#fff" strokeWidth="2" /><circle cx="16" cy="16" r="3.8" fill="none" stroke="#fff" strokeWidth="2" /><circle cx="21" cy="11" r="1.2" fill="#fff" /></svg>);
+export const ChannelIcon = ({ ch, size }: P & { ch: string }) => ch === "whatsapp" ? <WhatsAppIcon size={size} /> : ch === "messenger" ? <MessengerIcon size={size} /> : <InstagramIcon size={size} />;
