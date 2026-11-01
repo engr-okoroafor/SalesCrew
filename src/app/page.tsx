@@ -13,10 +13,10 @@ const steps = [
 ];
 export default function Home() {
   return (
-    <main className="grid-bg min-h-screen">
+    <main className="min-h-screen">
       <nav className="mx-auto flex max-w-6xl items-center justify-between p-5">
         <span className="text-xl font-black">Sales<span className="neon">Crew</span></span>
-        <Link href="/demo" className="btn">Open live demo →</Link>
+        <Link href="/app/inbox" className="btn">Open live demo →</Link><Link href="/login" className="btn-ghost">Sign in</Link>
       </nav>
       <section className="mx-auto grid max-w-6xl items-center gap-8 px-5 pt-10 pb-10 md:grid-cols-2">
         <div>
@@ -26,7 +26,7 @@ export default function Home() {
         </motion.h1>
         <p className="mt-6 text-lg text-slate-300">It finds prospects, cleans the data, writes the outreach, calls the ones who reply in their language, books the meeting, answers your DMs at 11pm — and builds the page that closes the deal.</p>
         <div className="mt-6 flex items-center gap-3 text-sm text-slate-300"><span className="tip" data-tip="WhatsApp Cloud API"><WhatsAppIcon size={30} /></span><span className="tip" data-tip="Messenger Platform"><MessengerIcon size={30} /></span><span className="tip" data-tip="Instagram Messaging"><InstagramIcon size={30} /></span> answers all three inboxes</div>
-        <div className="mt-8 flex gap-3"><Link href="/demo" className="btn">Try it — Amaka&apos;s Oven, Port Harcourt</Link><a className="btn-ghost" href="https://github.com/hildanonyelum-cell/SalesCrew">GitHub</a></div>
+        <div className="mt-8 flex gap-3"><Link href="/app/inbox" className="btn">Try it — Amaka&apos;s Oven, Port Harcourt</Link><a className="btn-ghost" href="https://github.com/hildanonyelum-cell/SalesCrew">GitHub</a></div>
         </div>
         <motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="glass relative overflow-hidden p-2">
           <img src={HERO} alt="Chocolate celebration cake from Amaka's Oven" className="h-[380px] w-full rounded-xl object-cover" />

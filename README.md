@@ -7,17 +7,11 @@ SalesCrew finds prospects, cleans the data, writes the outreach, calls the ones 
 
 Demo business: **Amaka's Oven & Events**, a bakery + catering business in Port Harcourt (seed data, no setup needed).
 
-## What the demo shows (`/demo`)
-| Tab | What happens | API |
-|---|---|---|
-| Inbox | WhatsApp, Messenger, IG DM threads. Agent replies **only to inbound threads**, stays on the business's services, offers two slots, books one, confirms. `HUMAN` or off-topic → human handoff | `/api/assist`, `/api/booking` |
-| Leads | FB/IG Lead Ads + Page activity + Google + Maps + directories → de-duplicated, normalised (+234), scored list | `/api/leads` |
-| Outreach | Enrichment → Muse Spark email that references a real detail about the prospect (owner approves before sending) | `/api/outreach` |
-| Call lab | Diarized, code-switched (English↔Yoruba) transcript in Muse Voice Transcribe shape + translation into Yoruba/Igbo/Hausa/Pidgin/French (SeamlessM4T S2ST pipeline, simulated audio) | `/api/speech` |
-| Bookings | Calendar; "job won" fires a CAPI event | `/api/booking` |
-| CAPI | `meeting_booked` → `Schedule`, `job_won` → `Purchase` payloads with SHA-256 hashed PII; dry-run unless `META_PIXEL_ID` + `META_CAPI_TOKEN` set | `/api/capi` |
-| Site builder | Muse Code-style one-page site generated from Page posts, reviews and photos, previewed in a sandboxed iframe | `/api/site` |
-| Settings | Provider order toggle + live connection test | `/api/health?ping=meta` |
+## App (`/app`)
+Inbox → Leads → Products → Outreach → Call Lab → Bookings → CAPI → Site builder → Memory/NBA → Settings → Admin. The app is multi-tenant: each vendor connects its own WhatsApp, Facebook Page and Instagram account. See **[CAPABILITIES.md](CAPABILITIES.md)** for the full feature list, data store and channel-connect flow. All environment variables are in **[.env.example](.env.example)**.
+
+- Open `/app/inbox` to use the guest demo workspace.
+- Use `/login` to sign up or sign in. It creates a free, persistent workspace stored in Neon or Vercel Blob.
 
 ## Models
 - **Primary:** Meta Model API — `muse-spark-1.3` (OpenAI-compatible `https://api.meta.ai/v1/chat/completions`)

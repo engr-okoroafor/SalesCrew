@@ -1,0 +1,3 @@
+export function parseJSON<T>(t: string, fb: T): T { try { const s = t.replace(/^```(json)?/im, "").replace(/```\s*$/m, ""); const a = s.search(/[[{]/); const end = Math.max(s.lastIndexOf("}"), s.lastIndexOf("]")); return JSON.parse(s.slice(a, end + 1)); } catch { return fb; } }
+// Image generation: META_IMAGE_API_URL (Meta/Imagine-compatible GET endpoint) when configured, else free Pollinations (public URL, works for IG publishing).
+export const imageUrl = (prompt: string, seed = Math.floor(Math.random() * 1e6)) => process.env.META_IMAGE_API_URL ? `${process.env.META_IMAGE_API_URL}?prompt=${encodeURIComponent(prompt)}` : `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
