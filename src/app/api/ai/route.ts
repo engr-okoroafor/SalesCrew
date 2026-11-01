@@ -5,7 +5,7 @@ import { parseJSON, imageUrl } from "@/lib/json";
 import { memoryFor, remember, audit } from "@/lib/pipeline";
 import { generateSite } from "@/lib/sitegen";
 import { uid, type Lead, type Product } from "@/lib/schema";
-export const maxDuration = 60;
+export const maxDuration = 120;
 export const dynamic = "force-dynamic";
 const money = (p: Product) => `${p.currency === "NGN" ? "₦" : "$"}${p.price.toLocaleString()}`;
 function upsellFor(lead: Lead, prods: Product[]) { const mine = prods.filter((p) => lead.productIds.includes(p.id)); const tags = new Set(mine.flatMap((p) => p.tags).concat(lead.interests.join(" ").toLowerCase().split(/\W+/)));
@@ -60,6 +60,12 @@ export async function POST(req: Request) {
       await mutate(ws, (w2) => { const i = w2.sites.findIndex((s) => s.id === r.site.id); if (i >= 0) w2.sites[i] = r.site; else w2.sites.unshift(r.site); audit(w2, "ai", "site.generate", r.site.name); });
       return Response.json(r);
     }
+    case "site-restore": { // roll back to a saved version (creates a new version so history is never lost)
+      const nw = await mutate(ws, (w2) => { const s = w2.sites.find((x) => x.id === b.siteId); const ver = s?.versions?.find((x) => x.v === b.v); if (!s || !ver) return; s.files = ver.files; s.updatedAt = new Date().toISOString();
+        s.versions = [...(s.versions ?? []), { v: (s.versions?.at(-1)?.v ?? 0) + 1, at: s.updatedAt, prompt: `Restore v${ver.v}`, summary: `Restored v${ver.v}`, files: ver.files }].slice(-15); s.history.push({ role: "ai", text: `Restored version ${ver.v}`, at: s.updatedAt }); });
+      return Response.json({ site: nw.sites.find((x) => x.id === b.siteId) });
+    }
+    case "site-facts": { const nw = await mutate(ws, (w2) => { const s = w2.sites.find((x) => x.id === b.siteId); if (s) s.facts = (b.facts as string[]).slice(-30); }); return Response.json({ site: nw.sites.find((x) => x.id === b.siteId) }); }
     case "memory": {
       const l = w.leads.find((x) => x.id === b.leadId); if (!l) return Response.json({ ok: false });
       const conv = w.conversations.filter((c) => c.leadId === l.id).flatMap((c) => c.messages.slice(-15).map((m) => `${m.from}: ${m.text}`)).join("\n");
