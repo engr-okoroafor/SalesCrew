@@ -17,7 +17,7 @@ export const identity = (c: Conversation) => { const p = c.profile ?? {};
   return { title: p.name || c.contact, sub: p.username && p.username !== p.name ? p.username : "Facebook / Messenger", photo: p.photo || c.avatar }; };
 const Avatar = ({ c, size = 44 }: { c: Conversation; size?: number }) => { const id = identity(c);
   return <div className="relative shrink-0" style={{ width: size, height: size }}>{id.photo ? <img src={id.photo} alt="" className="h-full w-full rounded-full object-cover ring-1 ring-[#39ff88]/30" /> : <div className="grid h-full w-full place-items-center rounded-full bg-gradient-to-br from-[#39ff88]/30 to-[#22d3ee]/20 text-sm font-bold">{initials(id.title)}</div>}
-    <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-white p-0.5"><ChannelIcon ch={c.channel} size={Math.round(size / 3)} /></span></div>; };
+    <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-[#05070a] p-0.5"><ChannelIcon ch={c.channel} size={Math.round(size / 3)} /></span></div>; };
 export default function Inbox() {
   const { w, vendor, set, api } = useData(); const [sel, setSel] = useState<string>(""); const [q, setQ] = useState(""); const [ch, setCh] = useState("all"); const [onlyUnread, setOnlyUnread] = useState(false);
   const [text, setText] = useState(""); const [media, setMedia] = useState<{ url: string; type: "image" | "video" }[]>([]); const [busy, setBusy] = useState(""); const [sim, setSim] = useState(false); const [mobileList, setMobileList] = useState(true);
