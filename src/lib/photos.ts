@@ -6,7 +6,7 @@ export const SERVICES = [
   { title: "Event catering & small chops", desc: "Buffets, small chops trays and jollof for 20–500 guests.", img: "/photos/catering.jpg", tip: "Quoted instantly on Messenger" },
   { title: "Event styling & setup", desc: "Weddings, owambe and corporate tables, styled end-to-end.", img: "/photos/events.jpg", tip: "Booked via the agent's calendar" },
   { title: "Same-day dispatch delivery", desc: "Rider delivery across Port Harcourt — GRA, Woji, Rumuola.", img: u("1617347454431-f49d7ff5c3b1"), tip: "Order status answered on WhatsApp" },
-  { title: "Tasting & consultations", desc: "Book a tasting or a planning call with Amaka.", img: u("1600880292203-757bb62b4baf"), tip: "Human handoff anytime — reply HUMAN" },
+  { title: "Tasting & consultations", desc: "Book a tasting or a planning call with the Rise & Eat team.", img: u("1600880292203-757bb62b4baf"), tip: "Human handoff anytime — reply HUMAN" },
 ];
 export const GALLERY = [
   u("1578985545062-69928b1d9587", 600), u("1464349095431-e9a21285b5f3", 600), u("1586985289688-ca3cf47d3e6e", 600),

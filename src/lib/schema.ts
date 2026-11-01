@@ -56,7 +56,7 @@ export function seedWorkspace(id: string): Workspace {
     payments: { paystack: true, stripe: true, defaultCurrency: "NGN", transferDetails: "", bank: [{ bank: "Moniepoint MFB", accountName: "SalesCrew Collections", accountNumber: "0000000000", currency: "NGN", note: "Replace in Admin → Payments" }] }, capi: { pixelId: "", testEventCode: "", autoEvents: ["Lead", "Schedule", "Purchase", "Contact"] },
     notifications: { email: "", dailyDigest: true, hotLeadAlert: true }, outreach: { quietHours: "21:00-08:00", maxPerDay: 200, signature: "— Sent with SalesCrew" }, site: { defaultTarget: "vercel" } };
   const vendors: Vendor[] = [
-    { id: v1, name: "Amaka's Oven & Events", industry: "Food & events", city: "Port Harcourt", currency: "NGN", color: "#39ff88", active: true, autoReply: true, hours: "Mon–Sat 8:00–19:00", persona: "Warm, Nigerian-English friendly baker and caterer", channels: { whatsapp: { status: "connected", display: "+234 803 000 0000" }, messenger: { status: "connected", pageName: "MoneyMinds", pageId: "265491983319446" }, instagram: { status: "pending" } } },
+    { id: v1, name: "Rise & Eat", industry: "Food & events", city: "Port Harcourt", currency: "NGN", color: "#39ff88", active: true, autoReply: true, hours: "Mon–Sat 8:00–19:00", persona: "Warm, Nigerian-English friendly baker and caterer", channels: { whatsapp: { status: "connected", display: "+234 803 000 0000" }, messenger: { status: "connected", pageName: "MoneyMinds", pageId: "265491983319446" }, instagram: { status: "pending" } } },
     { id: v2, name: "SunGrid Solar Supplies", industry: "Energy goods & installation", city: "Lagos", currency: "NGN", color: "#ffd23f", active: true, autoReply: true, hours: "Mon–Fri 9:00–18:00", persona: "Technical, reassuring solar advisor", channels: { whatsapp: { status: "pending" }, messenger: { status: "off" }, instagram: { status: "off" } } },
     { id: v3, name: "Kora Consulting", industry: "B2B services (US)", city: "Austin, TX", currency: "USD", color: "#7c5cff", active: true, autoReply: false, hours: "Mon–Fri 9–5 CT", persona: "Crisp, consultative US B2B tone", channels: { messenger: { status: "off" }, instagram: { status: "off" }, whatsapp: { status: "off" } } },
   ];
@@ -83,7 +83,7 @@ export function seedWorkspace(id: string): Workspace {
   const conv = (id: string, vendorId: string, leadId: string, channel: Channel, contact: string, msgs: [Message["from"], string][]): Conversation => ({ id, vendorId, leadId, channel, contact, contactId: leadId, unread: 1, aiOn: true, updatedAt: now(),
     messages: msgs.map(([from, text], i) => ({ id: `${id}m${i}`, from, text, at: new Date(Date.now() - (msgs.length - i) * 60000).toISOString(), status: from === "customer" ? undefined : "read" })) });
   const conversations: Conversation[] = [
-    { ...conv("cv1", v1, "l4", "whatsapp", "Funke Adeyemi", [["customer", "Good evening! Can I get a 6-inch birthday cake ready for Saturday? Chocolate please 🎂"], ["ai", "Good evening Funke! 🎂 Yes — a 6-inch chocolate celebration cake is ₦25,000 and Saturday works (48h lead time). Shall I book it and send a Paystack link? Reply HUMAN anytime to talk to Amaka."]]), profile: { name: "Funke Adeyemi", phone: "+234 810 777 8888", photo: "https://i.pravatar.cc/120?img=47" } },
+    { ...conv("cv1", v1, "l4", "whatsapp", "Funke Adeyemi", [["customer", "Good evening! Can I get a 6-inch birthday cake ready for Saturday? Chocolate please 🎂"], ["ai", "Good evening Funke! 🎂 Yes — a 6-inch chocolate celebration cake is ₦25,000 and Saturday works (48h lead time). Shall I book it and send a Paystack link? Reply HUMAN anytime to talk to the Rise & Eat team."]]), profile: { name: "Funke Adeyemi", phone: "+234 810 777 8888", photo: "https://i.pravatar.cc/120?img=47" } },
     { ...conv("cv2", v1, "l1", "messenger", "Tonye Briggs", [["customer", "Hi, how far? I get 3 weddings for December, una fit handle the cakes?"]]), profile: { name: "Tonye Briggs", username: "tonye.briggs.events" } },
     { ...conv("cv3", v1, "l2", "instagram", "Ngozi Eze", [["customer", "Saw your small chops post 😍 do you deliver 50 pcs to Woji on Friday?"]]), profile: { name: "Ngozi Eze", handle: "ngozi.eze" } },
     { ...conv("cv4", v2, "l5", "whatsapp", "Musa Bello", [["customer", "Salam. Ina son inverter 5kVA don shagona. Nawa ne?"]]), profile: { name: "Musa Bello", phone: "+234 809 123 4567" } },
@@ -108,7 +108,7 @@ export function seedWorkspace(id: string): Workspace {
       { id: "m3", vendorId: v2, leadId: "l5", scope: "short", kind: "objection", text: "Musa worried about upfront cost — offer installment.", at: now(), ttlHours: 72 },
     ],
     rules: [
-      { id: "r1", name: "Wedding keywords → Amaka", when: { keyword: "wedding" }, assignVendorId: v1, priority: 1, active: true },
+      { id: "r1", name: "Wedding keywords → Rise & Eat", when: { keyword: "wedding" }, assignVendorId: v1, priority: 1, active: true },
       { id: "r2", name: "Solar/inverter → SunGrid", when: { keyword: "inverter" }, assignVendorId: v2, priority: 1, active: true },
       { id: "r3", name: "Campaign c2 leads → SunGrid", when: { campaignId: "c2" }, assignVendorId: v2, priority: 2, active: true },
     ],

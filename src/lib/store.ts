@@ -41,7 +41,9 @@ export async function loadWorkspace(id: string): Promise<Workspace> {
   const c = cache.get(id); if (c && Date.now() - c.at < 1500) return c.doc;
   let doc = await readRaw(id);
   if (!doc) { doc = seedWorkspace(id); await writeRaw(id, doc); }
-  doc.engagements ??= []; doc.tasks ??= defaultTasks(); doc.approvals ??= [];
+  doc.engagements ??= []; // brand migration: Amaka's Oven & Events → Rise & Eat
+  { const raw = JSON.stringify(doc); if (raw.includes("Amaka")) doc = JSON.parse(raw.replace(/Amaka(?:&apos;|'|’)s Oven(?: (?:&amp;|&) Events)?/g, "Rise & Eat").replace(/\bAmaka\b/g, "the Rise & Eat team")) as Workspace; }
+   doc.tasks ??= defaultTasks(); doc.approvals ??= [];
   cache.set(id, { at: Date.now(), doc }); return doc;
 }
 export async function saveWorkspace(doc: Workspace) { doc.updatedAt = new Date().toISOString(); cache.set(doc.id, { at: Date.now(), doc }); await writeRaw(doc.id, doc); }

@@ -20,7 +20,7 @@ It also runs the business's day-to-day messaging on WhatsApp, Facebook Messenger
 
 Outbound, SalesCrew pulls leads from Facebook/Instagram Lead Ads and Page activity, then from Google, maps and public directories. It merges them into one de-duplicated, scored list. Muse Spark writes an email that references something real about each prospect. When a prospect replies, the call runs through Muse Voice Transcribe (speaker labels, English↔Yoruba code-switching) and SeamlessM4T speech-to-speech, so each side hears the other in their own language. Booked meetings and won jobs go back to Meta through the Conversions API, so the business's ads optimise for revenue instead of clicks. Muse Code-style generation then turns the Page's photos, reviews and posts into a one-page website.
 
-The live demo uses Amaka's Oven & Events, a real-world-style bakery in Port Harcourt, Nigeria, so judges can click through the whole pipeline with no setup.
+The live demo uses Rise & Eat, a real-world-style bakery in Port Harcourt, Nigeria, so judges can click through the whole pipeline with no setup.
 
 **Public GitHub Repository:** https://github.com/hildanonyelum-cell/SalesCrew
 

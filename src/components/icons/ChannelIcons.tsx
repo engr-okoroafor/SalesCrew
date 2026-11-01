@@ -1,11 +1,19 @@
+// Bold, futuristic channel marks: glowing hex-rounded tile, thick glyph, high contrast on dark UI.
 type P = { size?: number; className?: string };
-export const WhatsAppIcon = ({ size = 24, className }: P) => (
-  <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-label="WhatsApp"><circle cx="16" cy="16" r="16" fill="#25D366" />
-    <path fill="#fff" d="M16 7.2a8.8 8.8 0 0 0-7.6 13.2L7.2 24.8l4.5-1.2A8.8 8.8 0 1 0 16 7.2Zm0 16.1a7.3 7.3 0 0 1-3.7-1l-.3-.2-2.7.7.7-2.6-.2-.3A7.3 7.3 0 1 1 16 23.3Zm4-5.5c-.2-.1-1.3-.6-1.5-.7-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6 6 0 0 1-3-2.6c-.2-.4.2-.4.6-1.2.1-.1 0-.3 0-.4l-.7-1.6c-.2-.4-.4-.4-.5-.4h-.4a.8.8 0 0 0-.6.3 2.5 2.5 0 0 0-.8 1.9 4.4 4.4 0 0 0 .9 2.3 10 10 0 0 0 3.9 3.4c1.4.6 2 .7 2.7.6a2.3 2.3 0 0 0 1.5-1.1 1.9 1.9 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3Z" /></svg>);
-export const MessengerIcon = ({ size = 24, className }: P) => (
-  <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-label="Messenger"><defs><radialGradient id="msg" cx="20%" cy="100%" r="120%"><stop offset="0" stopColor="#0099FF" /><stop offset=".6" stopColor="#A033FF" /><stop offset=".9" stopColor="#FF5280" /><stop offset="1" stopColor="#FF7061" /></radialGradient></defs>
-    <circle cx="16" cy="16" r="16" fill="url(#msg)" /><path fill="#fff" d="M16 6.5c-5.4 0-9.5 3.9-9.5 9.2 0 2.8 1.1 5.2 3 6.8v3l2.8-1.6c1.1.3 2.3.5 3.7.5 5.4 0 9.5-3.9 9.5-9.2S21.4 6.5 16 6.5Zm1 12.3-2.4-2.6-4.7 2.6 5.2-5.5 2.5 2.6 4.6-2.6-5.2 5.5Z" /></svg>);
-export const InstagramIcon = ({ size = 24, className }: P) => (
-  <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-label="Instagram"><defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0" stopColor="#FDF497" /><stop offset=".05" stopColor="#FDF497" /><stop offset=".45" stopColor="#FD5949" /><stop offset=".6" stopColor="#D6249F" /><stop offset=".9" stopColor="#285AEB" /></radialGradient></defs>
-    <rect width="32" height="32" rx="8" fill="url(#ig)" /><rect x="8" y="8" width="16" height="16" rx="4.5" fill="none" stroke="#fff" strokeWidth="2" /><circle cx="16" cy="16" r="3.8" fill="none" stroke="#fff" strokeWidth="2" /><circle cx="21" cy="11" r="1.2" fill="#fff" /></svg>);
-export const ChannelIcon = ({ ch, size }: P & { ch: string }) => ch === "whatsapp" ? <WhatsAppIcon size={size} /> : ch === "messenger" ? <MessengerIcon size={size} /> : <InstagramIcon size={size} />;
+const Tile = ({ size = 24, className, id, from, to, glow, label, children }: P & { id: string; from: string; to: string; glow: string; label: string; children: React.ReactNode }) => (
+  <svg viewBox="0 0 32 32" width={size} height={size} className={className} role="img" aria-label={label} style={{ filter: `drop-shadow(0 0 ${Math.max(2, size / 6)}px ${glow})` }}>
+    <defs><linearGradient id={`g-${id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={from} /><stop offset="1" stopColor={to} /></linearGradient></defs>
+    <rect x="1" y="1" width="30" height="30" rx="9" fill="#05070a" stroke={`url(#g-${id})`} strokeWidth="2.4" />
+    <rect x="4" y="4" width="24" height="24" rx="7" fill={`url(#g-${id})`} />
+    <path d="M6 10 Q16 3 26 10" stroke="#fff" strokeOpacity=".35" strokeWidth="1.2" fill="none" />
+    {children}</svg>);
+export const WhatsAppIcon = (p: P) => <Tile {...p} id="wa" from="#5dffa0" to="#0aa34f" glow="#25D366" label="WhatsApp">
+  <path d="M16 8.2a7.8 7.8 0 0 0-6.7 11.8L8.4 23.8l3.9-1a7.8 7.8 0 1 0 3.7-14.6Z" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinejoin="round" />
+  <path d="M13.2 12.6c.3-.5.7-.5 1-.3l.8 1.8c.1.3 0 .5-.2.7l-.4.5c.6 1.2 1.5 2.1 2.7 2.7l.5-.4c.2-.2.4-.3.7-.2l1.8.8c.3.2.3.6-.2 1.1-.6.6-1.5.8-2.4.4a8 8 0 0 1-4.6-4.6c-.3-.9-.1-1.8.3-2.5Z" fill="#fff" /></Tile>;
+export const MessengerIcon = (p: P) => <Tile {...p} id="ms" from="#00c6ff" to="#a033ff" glow="#3b82f6" label="Messenger">
+  <path d="M16 8c-4.6 0-8 3.3-8 7.7 0 2.4 1 4.4 2.6 5.7v2.8l2.5-1.4c.9.3 1.9.4 2.9.4 4.6 0 8-3.3 8-7.6S20.6 8 16 8Z" fill="#fff" />
+  <path d="m10.8 18 3.6-3.9 2.2 2 3.6-2-3.6 3.9-2.2-2Z" fill="#6d28d9" stroke="#6d28d9" strokeWidth="1" strokeLinejoin="round" /></Tile>;
+export const InstagramIcon = (p: P) => <Tile {...p} id="ig" from="#ffd43b" to="#d6249f" glow="#e1306c" label="Instagram">
+  <rect x="9" y="9" width="14" height="14" rx="4.2" fill="none" stroke="#fff" strokeWidth="2.4" />
+  <circle cx="16" cy="16" r="3.3" fill="none" stroke="#fff" strokeWidth="2.4" /><circle cx="20.4" cy="11.6" r="1.3" fill="#fff" /></Tile>;
+export const ChannelIcon = ({ ch, size, className }: P & { ch: string }) => ch === "whatsapp" ? <WhatsAppIcon size={size} className={className} /> : ch === "messenger" ? <MessengerIcon size={size} className={className} /> : <InstagramIcon size={size} className={className} />;

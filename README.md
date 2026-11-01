@@ -5,7 +5,7 @@ Built by **Hilda Okoronkwo** ([@hildanonyelum-cell](https://github.com/hildanony
 
 SalesCrew finds prospects, cleans the data, writes the outreach, calls the ones who reply (in their language), books the meeting, answers WhatsApp / Messenger / Instagram DMs on its own, sends results back to Meta, and builds the one-page site that closes the deal.
 
-Demo business: **Amaka's Oven & Events**, a bakery + catering business in Port Harcourt (seed data, no setup needed).
+Demo business: **Rise & Eat**, a bakery + catering business in Port Harcourt (seed data, no setup needed).
 
 ## App (`/app`)
 Inbox → Leads → Products → Outreach → Call Lab → Bookings → CAPI → Site builder → Memory/NBA → Settings → Admin. The app is multi-tenant: each vendor connects its own WhatsApp, Facebook Page and Instagram account. See **[CAPABILITIES.md](CAPABILITIES.md)** for the full feature list, data store and channel-connect flow. All environment variables are in **[.env.example](.env.example)**.
