@@ -63,3 +63,6 @@ Prompt and guardrail tuning. Each model reacts differently to the same scope rul
 
 **What would most likely stop you from using Meta's models in production:**
 Regional availability, pricing and rate-limit guarantees for Africa-based businesses, plus the data-residency and retention terms for customer conversations. Clear SLAs and published pricing would remove that blocker.
+
+---
+**Feature summary (for the description field if space allows):** Unified WhatsApp/Messenger/IG inbox with AI replies grounded in an uploaded knowledge base (photos, PDF, Word) · Engage: text or AI voice calls in English, Pidgin, Igbo, Yoruba, Hausa, plus replies/DMs to everyone who liked or commented · Leads with source tracking · Products with view/inquiry analytics · Paystack, Stripe or bank-transfer payments with a public pay page · Conversions API events · AI site builder with self-healing edits, versions, voice, attachments and one-click deploy · Admin AI copilot in natural language · Autopilot cron tasks with human-in-the-loop approvals · one unique WhatsApp number / Page / IG account per vendor.

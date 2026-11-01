@@ -18,7 +18,9 @@ A single neon-glass workspace where an AI agent:
 2. **Qualifies and remembers**: lead scoring, memory bank, and a next-best action for each contact.
 3. **Closes**: bookings, product catalog, and payment links (Paystack NGN / Stripe USD).
 4. **Measures**: lead, contact, checkout and purchase events go to Meta CAPI so ads optimise on real sales.
-5. **Grows**: outreach campaigns, a daily follow-up cron, and an AI site builder (IDE plus deploy to Vercel, Netlify, GitHub or ZIP).
+5. **Grows**: Engage (reach out by text or AI call, reply to everyone who liked/commented), and an AI site builder with self-healing edits, versions and deploy to Vercel, Netlify, GitHub or ZIP.
+6. **Runs itself, with a human in the loop**: an Admin AI copilot answers questions in plain language and queues actions; Autopilot tasks run on a cron and wait for one-click approval.
+7. **Knows the business**: owners upload menus (photos), price lists (PDF) or policies (Word); the text is extracted and grounds every reply.
 
 ## How it uses Meta
 | Meta surface | Use |
@@ -35,7 +37,7 @@ A single neon-glass workspace where an AI agent:
 1. 0:00 Landing page: the hook ("Vendors lose 60% of chats after hours").
 2. 0:20 Sign up and create a vendor workspace. Settings → Channels → Connect with Facebook (WA/FB/IG).
 3. 0:50 Send a WhatsApp message in Pidgin ("Abeg how much for 3-tier cake?"). The AI replies in Pidgin with price and photo.
-4. 1:20 Inbox shows the same thread; the lead is auto-scored; Memory shows the next-best action.
+4. 1:20 Inbox shows the same thread; the lead is auto-scored. Admin → AI copilot: “Who should I follow up today?” queues drafts for approval.
 5. 1:45 Customer books. A Paystack link is sent, payment completes, and the booking is confirmed.
 6. 2:10 CAPI page: the Purchase event appears in the log and the payload viewer.
 7. 2:30 Sites: "Build me a cake shop site". Preview, then deploy to Vercel.
