@@ -85,3 +85,44 @@ export async function waCall(to: string, creds: { token?: string; phoneNumberId?
 export async function fetchWaMedia(id: string) { const token = process.env.WHATSAPP_ACCESS_TOKEN; if (!token) return null;
   const m = await g(id, "GET", token); const url = (m as any).data?.url; if (!url) return null;
   const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } }); return r.ok ? { buf: await r.arrayBuffer(), type: r.headers.get("content-type") ?? "image/jpeg" } : null; }
+
+// Engagement webhooks (comments / reactions on Page & IG posts) → Engagement records.
+export type InboundEngagement = { channel: Channel; kind: "comment" | "like" | "share" | "mention"; to: string; postId?: string; commentId?: string; whoId?: string; who: string; text?: string };
+export function parseEngagements(body: any): InboundEngagement[] {
+  const out: InboundEngagement[] = [];
+  for (const e of body?.entry ?? []) for (const c of e.changes ?? []) { const v = c.value ?? {};
+    if (body.object === "page" && c.field === "feed" && v.from?.id !== e.id) {
+      if (v.item === "comment" && v.verb === "add") out.push({ channel: "messenger", kind: "comment", to: e.id, postId: v.post_id, commentId: v.comment_id, whoId: v.from?.id, who: v.from?.name ?? "Facebook user", text: v.message });
+      else if ((v.item === "reaction" || v.item === "like") && v.verb === "add") out.push({ channel: "messenger", kind: "like", to: e.id, postId: v.post_id, whoId: v.from?.id, who: v.from?.name ?? "Facebook user" });
+      else if (v.item === "share") out.push({ channel: "messenger", kind: "share", to: e.id, postId: v.post_id, whoId: v.from?.id, who: v.from?.name ?? "Facebook user" });
+    } else if (body.object === "instagram") {
+      if (c.field === "comments") out.push({ channel: "instagram", kind: "comment", to: e.id, postId: v.media?.id, commentId: v.id, whoId: v.from?.id, who: v.from?.username ? `@${v.from.username}` : "Instagram user", text: v.text });
+      else if (c.field === "mentions") out.push({ channel: "instagram", kind: "mention", to: e.id, postId: v.media_id, commentId: v.comment_id, who: "Instagram mention" });
+    } }
+  return out;
+}
+// Real identity for Messenger (PSID → name, profile_pic) and Instagram (IGSID → username, name, profile_pic). Needs page token; null otherwise.
+export async function fetchProfile(channel: Channel, id: string, token?: string): Promise<{ name?: string; handle?: string; username?: string; photo?: string } | null> {
+  const t = token ?? process.env.META_PAGE_ACCESS_TOKEN; if (!t || channel === "whatsapp") return null;
+  try { const f = channel === "instagram" ? "name,username,profile_pic" : "first_name,last_name,name,profile_pic";
+    const r = await fetch(`${GRAPH}/${id}?fields=${f}&access_token=${t}`, { signal: AbortSignal.timeout(8000) }); if (!r.ok) return null; const j = await r.json();
+    return channel === "instagram" ? { name: j.name ?? (j.username ? `@${j.username}` : undefined), handle: j.username, photo: j.profile_pic } : { name: j.name ?? [j.first_name, j.last_name].filter(Boolean).join(" "), username: j.name, photo: j.profile_pic };
+  } catch { return null; }
+}
+// Public reply to a comment (FB: /{comment-id}/comments, IG: /{ig-comment-id}/replies) and Private Reply DM (send API with recipient.comment_id).
+export async function replyComment(channel: Channel, commentId: string, text: string, token?: string) {
+  const t = token ?? process.env.META_PAGE_ACCESS_TOKEN; if (!t || commentId.startsWith("demo_")) return { ok: false, dryRun: true };
+  const r = await fetch(`${GRAPH}/${commentId}/${channel === "instagram" ? "replies" : "comments"}`, { method: "POST", headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+  const j = await r.json().catch(() => ({})); return { ok: r.ok, id: j.id, error: j.error?.message };
+}
+export async function privateReply(channel: Channel, commentId: string, text: string, creds: { token?: string; pageId?: string; igUserId?: string } = {}) {
+  const t = creds.token ?? process.env.META_PAGE_ACCESS_TOKEN; if (!t || commentId.startsWith("demo_")) return { ok: false, dryRun: true };
+  const node = channel === "instagram" ? (creds.igUserId ?? process.env.IG_USER_ID) : (creds.pageId ?? "me"); if (!node) return { ok: false, dryRun: true };
+  const r = await fetch(`${GRAPH}/${node}/messages`, { method: "POST", headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json" }, body: JSON.stringify({ recipient: { comment_id: commentId }, message: { text } }) });
+  const j = await r.json().catch(() => ({})); return { ok: r.ok, id: j.message_id, error: j.error?.message };
+}
+// Per-vendor credential resolution (vendor tokens override env).
+export function vendorCreds(v: { channels: any; tokens?: Record<string, string | undefined> } | undefined, channel: Channel) {
+  if (!v) return {}; const tk = v.tokens ?? {};
+  return channel === "whatsapp" ? { token: tk.whatsapp, phoneNumberId: v.channels?.whatsapp?.phoneNumberId } : { token: tk[channel] ?? tk.messenger ?? tk.instagram, igUserId: v.channels?.instagram?.igUserId, pageId: v.channels?.messenger?.pageId };
+}

@@ -1,5 +1,5 @@
 // Live inbound: WhatsApp Cloud API, Messenger, Instagram Messaging → route to vendor → lead + conversation → AI auto-reply.
-import { verifySignature, parseInbound, sendMessage, fetchWaMedia } from "@/lib/meta";
+import { verifySignature, parseInbound, parseEngagements, sendMessage, fetchWaMedia, fetchProfile, vendorCreds } from "@/lib/meta";
 import { agentReply } from "@/lib/agent";
 import { loadGlobal, loadWorkspace, mutate, putMedia } from "@/lib/store";
 import { routeVendor, memoryFor, remember, capi, scoreLead } from "@/lib/pipeline";
@@ -21,25 +21,34 @@ export async function POST(req: Request) {
     const ws = route.workspaceId; const now = new Date().toISOString();
     const media = [] as { url: string; type: "image" | "video" }[];
     for (const x of m.media ?? []) { if (x.url) media.push({ url: x.url, type: x.type }); else if (x.id) { const f = await fetchWaMedia(x.id); if (f) media.push({ url: await putMedia(`${x.id}.${f.type.split("/")[1]}`, f.buf, f.type), type: x.type }); } }
+    const pre = (await loadWorkspace(ws)).vendors.find((v) => v.id === route.vendorId); const known = (await loadWorkspace(ws)).conversations.find((x) => x.channel === m.channel && x.contactId === m.from);
+    const prof = !known?.profile?.name || !known?.profile?.photo ? await fetchProfile(m.channel, m.from, vendorCreds(pre, m.channel).token) : null;
     let convId = "";
     await mutate(ws, async (w) => {
       const vendorId = route.vendorId || routeVendor(w, { channel: m.channel, text: m.text, to: m.to });
       let c = w.conversations.find((x) => x.channel === m.channel && x.contactId === m.from);
-      if (!c) { const leadId = uid("l"); const lead = { id: leadId, vendorId, name: m.name ?? `${m.channel} ${m.from.slice(-4)}`, company: "", email: "", phone: m.channel === "whatsapp" ? `+${m.from}` : "", source: `${m.channel} inbound`, channel: m.channel, segment: "Inbound", customerType: "B2C" as const, interests: [], productIds: [], score: 0, stage: "new" as const, value: 0, note: m.text, lang: "en", createdAt: now, tags: ["inbound"] };
+      if (!c) { const leadId = uid("l"); const lead = { id: leadId, vendorId, name: m.name ?? prof?.name ?? (prof?.handle ? `@${prof.handle}` : `${m.channel} ${m.from.slice(-4)}`), company: "", email: "", phone: m.channel === "whatsapp" ? `+${m.from}` : "", source: `${m.channel} inbound`, channel: m.channel, segment: "Inbound", customerType: "B2C" as const, interests: [], productIds: [], score: 0, stage: "new" as const, value: 0, note: m.text, lang: "en", createdAt: now, tags: ["inbound"] };
         lead.score = scoreLead(lead); w.leads.unshift(lead);
-        c = { id: uid("cv"), vendorId, leadId, channel: m.channel, contact: lead.name, contactId: m.from, messages: [], unread: 0, aiOn: w.vendors.find((v) => v.id === vendorId)?.autoReply ?? true, updatedAt: now, window24h: now }; w.conversations.unshift(c); await capi(w, vendorId, "lead", leadId, 0, undefined, "chat"); }
+        c = { id: uid("cv"), vendorId, leadId, channel: m.channel, contact: lead.name, contactId: m.from, messages: [], unread: 0, aiOn: w.vendors.find((v) => v.id === vendorId)?.autoReply ?? true, updatedAt: now, window24h: now, profile: { name: m.name ?? prof?.name, phone: m.channel === "whatsapp" ? `+${m.from}` : undefined, handle: prof?.handle, username: prof?.username, photo: prof?.photo }, avatar: prof?.photo }; w.conversations.unshift(c); await capi(w, vendorId, "lead", leadId, 0, undefined, "chat"); }
+      if (prof) { c.profile = { ...c.profile, ...Object.fromEntries(Object.entries(prof).filter(([, v]) => v)) }; if (prof.photo) c.avatar = prof.photo; }
+      w.engagements = [{ id: uid("e"), vendorId: c.vendorId, leadId: c.leadId, channel: m.channel, kind: "message" as const, who: c.contact, whoId: m.from, text: m.text, at: now, status: "replied" as const }, ...(w.engagements ?? [])].slice(0, 500);
       c.messages.push({ id: m.id ?? uid("m"), from: "customer", text: m.text, at: now, media: media.length ? media : undefined }); c.unread++; c.updatedAt = now; c.window24h = now; convId = c.id;
     });
     const w = await loadWorkspace(ws); const c = w.conversations.find((x) => x.id === convId)!;
     if (!c.aiOn || !w.settings.ai.autoReply) { results.push({ conv: convId, skipped: "ai-off" }); continue; }
     const v = w.vendors.find((x) => x.id === c.vendorId) as (typeof w.vendors)[number] & { tokens?: Record<string, string> };
     const r = await agentReply(w, c.vendorId, c.channel, c.messages, w.settings.ai.primary, memoryFor(w, c.leadId));
-    const send = await sendMessage(m.channel, m.from, r.text, { token: v?.tokens?.[m.channel], phoneNumberId: v?.channels.whatsapp?.phoneNumberId, igUserId: v?.channels.instagram?.igUserId });
+    const send = await sendMessage(m.channel, m.from, r.text, vendorCreds(v, m.channel));
     await mutate(ws, async (w) => { const cc = w.conversations.find((x) => x.id === convId)!; cc.messages.push({ id: uid("m"), from: "ai", text: r.text, at: new Date().toISOString(), status: send.ok ? "sent" : send.dryRun ? "dry-run" : "failed" });
       if (r.handoff) cc.aiOn = r.model !== "handoff-policy";
       if (r.booked) { w.bookings.push({ id: uid("b"), vendorId: cc.vendorId, leadId: cc.leadId, title: `${cc.contact} — via ${cc.channel}`, start: r.booked, durationMin: w.settings.calls.slotMin, channel: cc.channel, status: "confirmed", source: "inbox" }); remember(w, cc.vendorId, cc.leadId, "promise", `Booked ${r.booked}`); await capi(w, cc.vendorId, "booked", cc.leadId); } });
     results.push({ conv: convId, send: { ok: send.ok, dryRun: send.dryRun } });
   }
+  // Post engagement (comments, likes, shares, mentions) → Engagement feed; auto-engage task replies + private-DMs to sell.
+  for (const e of parseEngagements(body)) { const route = g.routes[e.to] || { workspaceId: process.env.DEFAULT_WORKSPACE_ID ?? "demo", vendorId: "" };
+    await mutate(route.workspaceId, (w) => { const vendorId = route.vendorId || w.vendors[0].id; const lead = w.leads.find((l) => e.who && l.name.toLowerCase() === e.who.replace(/^@/, "").toLowerCase());
+      w.engagements = [{ id: uid("e"), vendorId, leadId: lead?.id, channel: e.channel, kind: e.kind, postId: e.postId, commentId: e.commentId, who: e.who, whoId: e.whoId, text: e.text, at: new Date().toISOString(), status: "new" as const }, ...(w.engagements ?? [])].slice(0, 500); });
+    results.push({ engagement: e.kind }); }
   console.log("[meta-webhook]", JSON.stringify(results));
   return Response.json({ ok: true, handled: results.length });
 }

@@ -13,10 +13,13 @@ export async function POST(req: Request) {
     u.search = new URLSearchParams({ client_id: process.env.META_APP_ID, redirect_uri: `${origin}/api/channels/callback`, state: `${state}.${sign(state)}`, scope: SCOPES, ...(process.env.META_CONFIG_ID ? { config_id: process.env.META_CONFIG_ID } : {}) }).toString();
     return Response.json({ url: u.toString() }); }
   if (b.action === "manual") { const g = await loadGlobal();
+    // Uniqueness: one WhatsApp number / Page / IG account maps to exactly one vendor (inbound routing must be unambiguous).
+    const taken = b.id && g.routes[b.id]; if (taken && (taken.workspaceId !== ws || taken.vendorId !== b.vendorId)) return Response.json({ error: `That ${b.channel} id is already mapped to another vendor${taken.workspaceId === ws ? ` (${taken.vendorId})` : ""}. Each vendor needs its own number/page/handle.` }, { status: 409 });
     const w = await mutate(ws, (w) => { const v = w.vendors.find((x) => x.id === b.vendorId); if (!v) return; const c = b.channel as "whatsapp" | "messenger" | "instagram";
       if (c === "whatsapp") { v.channels.whatsapp = { ...v.channels.whatsapp, phoneNumberId: b.id, display: b.display ?? v.channels.whatsapp?.display, status: "connected" }; }
       if (c === "messenger") v.channels.messenger = { ...v.channels.messenger, pageId: b.id, pageName: b.display ?? v.channels.messenger?.pageName, status: "connected" };
       if (c === "instagram") v.channels.instagram = { ...v.channels.instagram, igUserId: b.id, handle: b.display ?? v.channels.instagram?.handle, status: "connected" };
+      for (const [k, r] of Object.entries(g.routes)) if (r.workspaceId === ws && r.vendorId === v.id && k !== b.id && ((c === "whatsapp" && k === v.channels.whatsapp?.phoneNumberId) || (c === "messenger" && k === v.channels.messenger?.pageId) || (c === "instagram" && k === v.channels.instagram?.igUserId))) delete g.routes[k];
       if (b.token) v.tokens = { ...(v.tokens ?? {}), [c]: b.token }; if (b.id) g.routes[b.id] = { workspaceId: ws, vendorId: v.id }; });
     await saveGlobal(g); return Response.json({ ok: true, vendors: w.vendors.map(({ tokens, ...v }) => ({ ...v, hasTokens: Object.keys(tokens ?? {}) })) }); }
   if (b.action === "disconnect") { const w = await mutate(ws, (w) => { const v = w.vendors.find((x) => x.id === b.vendorId); if (v) { (v.channels as Record<string, { status: string }>)[b.channel] = { status: "off" }; if (v.tokens) delete v.tokens[b.channel]; } }); return Response.json({ ok: true, vendors: w.vendors.map(({ tokens, ...v }) => v) }); }

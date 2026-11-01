@@ -5,7 +5,7 @@
 import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { seedWorkspace, type Workspace } from "./schema";
+import { seedWorkspace, defaultTasks, type Workspace } from "./schema";
 
 export type Backend = "postgres" | "blob" | "file";
 export const backend = (): Backend => (process.env.DATABASE_URL ? "postgres" : process.env.BLOB_READ_WRITE_TOKEN ? "blob" : "file");
@@ -41,6 +41,7 @@ export async function loadWorkspace(id: string): Promise<Workspace> {
   const c = cache.get(id); if (c && Date.now() - c.at < 1500) return c.doc;
   let doc = await readRaw(id);
   if (!doc) { doc = seedWorkspace(id); await writeRaw(id, doc); }
+  doc.engagements ??= []; doc.tasks ??= defaultTasks(); doc.approvals ??= [];
   cache.set(id, { at: Date.now(), doc }); return doc;
 }
 export async function saveWorkspace(doc: Workspace) { doc.updatedAt = new Date().toISOString(); cache.set(doc.id, { at: Date.now(), doc }); await writeRaw(doc.id, doc); }
