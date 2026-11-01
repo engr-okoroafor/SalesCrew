@@ -1,5 +1,12 @@
 # SalesCrew — Capabilities
-Multi-tenant, multi-vendor AI sales crew for small businesses. It runs on WhatsApp, Messenger, Instagram, email and voice.
+Multi-tenant, multi-vendor AI sales crew for small businesses, built on Meta AI (Muse Spark 1.3 primary). It runs on WhatsApp, Messenger, Instagram, email and voice. Live demo brand: **Rise & Eat**, a Port Harcourt bakery — https://salescrew.vercel.app
+
+## Compliance by design (Meta 2026 messaging rules)
+- **Inbound-only:** the agent only replies to people who messaged first; proactive sends (follow-ups, reminders) go through Autopilot and wait for owner approval.
+- **Task-scoped:** a rule-based scope guard (`src/lib/agent.ts`) refuses off-topic requests *before* the model is called; the agent only covers the vendor's products, orders, delivery and bookings.
+- **HUMAN handoff:** every thread offers it; typing the keyword (default `HUMAN`) or any off-scope request hands the chat to the owner.
+- **Booking scope:** the model can only commit to a slot via a booking token validated server-side against the real calendar.
+- **24-hour window** banner in the Inbox; tokens never reach the browser.
 ## Pages
 | Page | What it does |
 |---|---|
@@ -14,7 +21,7 @@ Multi-tenant, multi-vendor AI sales crew for small businesses. It runs on WhatsA
 | **Admin** | **AI copilot** (natural-language ops: ask questions, get suggestions, queue actions), **Autopilot** (scheduled tasks + human-in-the-loop approvals), **Knowledge** (type/paste or upload photos, PDF, Word .docx — extracted to text and used by every AI reply), **Channels** (one unique WhatsApp number / Page / IG account per vendor, duplicates rejected), **Bank** accounts for transfer payments, analytics, vendors, facilities, team, campaigns, routing, payments audit with “Confirm received”, audit log. |
 
 ## Platform
-- **AI**: Meta muse-spark is primary; NVIDIA NIM is the fallback, then an offline template. All routes report provider/fallback.
+- **AI**: Meta Muse Spark 1.3 (`muse-spark-1.3`, `reasoning_effort: low`) is primary for every reasoning path; Muse Voice Transcribe for ASR, SeamlessM4T for speech translation; NVIDIA NIM is the fallback, then an offline template. All routes report provider/fallback.
 - **DB**: Neon Postgres if `DATABASE_URL` is set, otherwise Vercel Blob (`salescrew-data`), otherwise a local file. There is one JSON document per workspace plus `_global` (users, workspaces, channel routes).
 - **Auth**: free email+password (scrypt) with HMAC cookie. Guests get the `demo` workspace.
 - **Payments**: Paystack (NGN) and Stripe (USD) with signed webhooks. A paid webhook moves the lead to the paid stage, fires CAPI Purchase and saves nurture memory.

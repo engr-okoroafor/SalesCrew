@@ -1,54 +1,65 @@
 # SalesCrew — Meta Global AI Developer Hackathon 2026
 **Track:** Indie Dev · **Theme:** Build for Your World
 
-**Tagline:** *Your AI sales team that lives in WhatsApp, Messenger and Instagram.*
+**Tagline:** *The sales team a Port Harcourt bakery could never afford — living inside WhatsApp, Messenger and Instagram, powered by Meta AI.*
 
-**Elevator pitch:** SalesCrew gives every small vendor (bakers, caterers, event planners, boutiques) an AI sales crew powered by Meta AI. It answers DMs on WhatsApp, Messenger and Instagram in the customer's language, qualifies leads, books orders, takes payment in NGN (Paystack) or USD (Stripe), and reports every conversion back to Meta through the Conversions API. A vendor can be live in minutes and connects its own channels.
+**Elevator pitch:** SalesCrew gives every small vendor (bakers, caterers, event planners, boutiques) an AI sales crew built on **Muse Spark 1.3**. It answers inbound DMs on WhatsApp, Messenger and Instagram in the customer's language (English, Pidgin, Yoruba, Igbo, Hausa), quotes from the owner's real price list, books real slots, collects payment (Paystack NGN, Stripe USD or bank transfer) and reports every booking and sale back to Meta through the Conversions API. Scoped, inbound-only and with a HUMAN handoff in every thread. Live and working today.
 
-- Live: https://salescrew.vercel.app
-- Code: https://github.com/hildanonyelum-cell/SalesCrew
-- Team: Chukwudifu Uzoma Okoroafor (engineering, product) · Hilda Okoronkwo (product, go-to-market, repo owner)
+- **Live (no login needed):** https://salescrew.vercel.app — demo brand **Rise & Eat**, Port Harcourt
+- **Code:** https://github.com/hildanonyelum-cell/SalesCrew
+- **Demo video (3 min):** TBD — YouTube link to be added
+- **Team:** Hilda Okoronkwo (hildanonyelum — product, go-to-market, repo owner) · Chukwudifu (Chuks) Okoroafor (engineering, product)
 
-## Problem
-Across Nigeria and much of the Global South, commerce happens in chat. Vendors lose sales because they can't reply fast enough at 2am. They juggle three apps and switch between English, Pidgin, Igbo, Yoruba and Hausa. They also can't afford a CRM, an ads analyst or a developer. Ads on Meta bring traffic, but conversions that close in WhatsApp are never reported back, so ad spend is wasted.
+## Problem — our world
+In Nigeria, commerce happens in chat. Customers message at 11pm, in Pidgin or switching between English and Yoruba, across three different apps. Owners are baking, delivering or asleep, so replies come hours late and the customer buys elsewhere. Night staff, a call centre or a marketing agency costs more than most SMBs earn in a month. And when a Meta ad brings a customer who then pays inside WhatsApp, that sale is never reported back, so ad spend optimises for clicks instead of revenue.
 
-## Solution
-A single neon-glass workspace where an AI agent:
-1. **Replies instantly** on WhatsApp Cloud API, Messenger and IG DMs (unified inbox), in the customer's language.
-2. **Qualifies and remembers**: lead scoring, memory bank, and a next-best action for each contact.
-3. **Closes**: bookings, product catalog, and payment links (Paystack NGN / Stripe USD).
-4. **Measures**: lead, contact, checkout and purchase events go to Meta CAPI so ads optimise on real sales.
-5. **Grows**: Engage (reach out by text or AI call, reply to everyone who liked/commented), and an AI site builder with self-healing edits, versions and deploy to Vercel, Netlify, GitHub or ZIP.
-6. **Runs itself, with a human in the loop**: an Admin AI copilot answers questions in plain language and queues actions; Autopilot tasks run on a cron and wait for one-click approval.
-7. **Knows the business**: owners upload menus (photos), price lists (PDF) or policies (Word); the text is extracted and grounds every reply.
+## Impact (~30%)
+- **Revenue:** instant replies 24/7 recover after-hours orders. Illustrative: 3 lost orders/week × ~₦25,000 ≈ **₦300,000/month** back for one bakery.
+- **Cost savings:** replaces a night-shift sales rep, call-centre overflow and agency work (follow-ups, social replies, a website) with one workspace on free-tier infrastructure.
+- **Better ads:** CAPI `Schedule`/`Purchase` events teach Meta Ads which audiences actually pay.
+- **Inclusion:** five Nigerian languages, voice for customers who prefer voice notes, local currency and bank-transfer payments.
+- **Scales:** multi-vendor by design — every vendor connects its own WhatsApp number, Page and IG account.
+*(Figures are illustrative estimates, not measured results.)*
 
-## How it uses Meta
-| Meta surface | Use |
+## Creative use of Meta AI (~25%)
+| Meta technology | How SalesCrew uses it |
 |---|---|
-| Meta AI (Llama / muse-spark) | Primary LLM for replies, lead scoring, site generation; NVIDIA NIM fallback, then offline |
-| WhatsApp Cloud API | Inbound webhook, outbound replies and templates, per-vendor phone number |
-| Messenger Platform | Page inbox via webhook and Send API |
-| Instagram Messaging | IG DMs through the linked IG business account |
-| Conversions API | Server-side Lead / Contact / InitiateCheckout / Purchase with hashed user data; test-event console |
-| Facebook Login (OAuth) | Each vendor connects its own Page, IG and WABA; tokens stay server-side only |
-| SeamlessM4T / Muse voice | Speech translation hooks for voice notes (endpoint configurable) |
+| **Muse Spark 1.3** (primary) | Scoped booking agent, knowledge-grounded Pidgin/code-switched replies, lead scoring, Engage drafts, Admin copilot, Autopilot tasks, site generation — `reasoning_effort: low` for seconds-fast DMs |
+| **Booking-token protocol** | Muse Spark can only commit to a slot by emitting a token the server validates against the real calendar |
+| **Muse Voice Transcribe** | Diarized ASR for voice notes and calls, English↔Yoruba/Pidgin code-switching |
+| **SeamlessM4T** | Speech-to-speech translation so each side of a call hears their own language |
+| **Muse Code pattern** | Page photos, menu and reviews → one-page site with a self-heal loop, versions and one-click deploy |
+| **WhatsApp Cloud API / Messenger / IG Messaging** | One webhook routes each inbound message to the right vendor; replies sent with that vendor's token |
+| **Facebook Login for Business** | One-click per-vendor channel connect; tokens server-side only |
+| **Lead Ads + Page activity** | Lead sources, de-duplicated and scored |
+| **Conversions API** | `Lead` / `Schedule` / `InitiateCheckout` / `Purchase` with SHA-256 hashed PII, fired automatically |
+
+## Technical depth (~20%)
+- **Scoped inbound-only agent:** rule-based scope guard runs *before* the model; HUMAN keyword handoff; 24-hour-window awareness — compliant with Meta's 2026 rules (task-specific service and booking, not open-ended chat).
+- **Human-in-the-loop Autopilot:** Vercel cron runs follow-ups, payment reminders, reactivation and comment engagement; tasks marked "Needs approval" queue drafts for approve/edit/reject.
+- **Multi-vendor channel routing:** `routes[channelId] → {workspace, vendor}`; duplicate numbers/Pages/IG accounts rejected.
+- **Resilient inference:** Meta Model API → NVIDIA NIM (Nemotron) → offline template; every response reports provider and fallback.
+- **Closed loop:** Paystack/Stripe signed webhooks → lead stage "paid" → CAPI Purchase → nurture memory.
+- **Knowledge grounding:** photos, PDF and Word uploads extracted to text and injected into every reply.
+
+## Does it work? Yes
+The production deployment runs the whole pipeline on Rise & Eat with no setup: inbox, scoped replies, bookings calendar, pay page, CAPI log, Engage, Autopilot approvals and the site builder. Without Meta tokens, sends run in dry-run mode and are logged, using the same contracts as production; real vendors can connect live channels via Facebook Login.
 
 ## Demo script (3 min)
-1. 0:00 Landing page: the hook ("Vendors lose 60% of chats after hours").
-2. 0:20 Sign up and create a vendor workspace. Settings → Channels → Connect with Facebook (WA/FB/IG).
-3. 0:50 Send a WhatsApp message in Pidgin ("Abeg how much for 3-tier cake?"). The AI replies in Pidgin with price and photo.
-4. 1:20 Inbox shows the same thread; the lead is auto-scored. Admin → AI copilot: “Who should I follow up today?” queues drafts for approval.
-5. 1:45 Customer books. A Paystack link is sent, payment completes, and the booking is confirmed.
-6. 2:10 CAPI page: the Purchase event appears in the log and the payload viewer.
-7. 2:30 Sites: "Build me a cake shop site". Preview, then deploy to Vercel.
-8. 2:50 Admin: multi-vendor analytics. Close with the tagline.
+1. **0:00** Hook: an 11:40pm WhatsApp from a Port Harcourt customer — "Abeg how much for 3-tier cake? I need am Saturday."
+2. **0:20** Muse Spark replies in Pidgin with the real price, offers two open slots, books one and sends a Paystack link.
+3. **0:50** Customer asks something off-topic → scope guard declines; types HUMAN → thread handed to the owner.
+4. **1:15** Payment lands → booking confirmed on the calendar → CAPI `Purchase` appears in the live log.
+5. **1:40** Engage: AI drafts replies to everyone who commented on the latest post; Autopilot queues follow-ups for one-click approval.
+6. **2:10** Admin copilot: "Who should I follow up today?" → drafts queued.
+7. **2:30** Site builder: "Build Rise & Eat a one-page site" → self-heal → deploy.
+8. **2:50** Settings → Channels: any vendor connects their own WhatsApp, Page and IG. Close on tagline.
 
-## Why we win
-- **Built for our world**: chat-first commerce, local currencies, IP-based language detection, full-page translate.
-- **Deep Meta integration**: AI, WhatsApp, Messenger, IG, CAPI and Login in one closed loop from message to measured sale.
-- **Multi-vendor by design**: each vendor brings its own channels. This is a platform, not a demo bot.
-- **Resilient**: Meta AI → NVIDIA → offline fallback, and a free persistent store (Neon / Vercel Blob).
-- **Shipped**: live in production on Vercel, with free-tier infrastructure an indie developer can sustain.
+## Why SalesCrew wins
+- **Built for our world:** chat-first commerce, Pidgin and Nigerian languages, naira payments, bank transfer.
+- **Deepest Meta loop:** Muse Spark + Voice Transcribe + SeamlessM4T + WhatsApp/Messenger/IG + Login + CAPI, from first DM to measured sale.
+- **Compliant autonomy:** useful enough to run the business overnight, scoped enough to respect Meta's rules, with a human always one word away.
+- **It works:** live in production, multi-vendor, with a resilient fallback chain — built by an indie team on free-tier infrastructure.
 
 ## Tech stack and architecture
 Next.js 16 (App Router, Turbopack) · React 19 · Tailwind 4 · Framer Motion · Vercel Functions and Cron · Neon Postgres or Vercel Blob JSON store · scrypt + HMAC cookie auth · Graph API v21.0 · Paystack and Stripe webhooks.
