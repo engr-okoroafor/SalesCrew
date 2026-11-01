@@ -36,3 +36,11 @@ export const prefer = (v: unknown): Provider => (v === "nvidia" ? "nvidia" : "me
 // Guard against a repeated completion (same text emitted twice back-to-back).
 function dedupe(t: string) { const h = t.length / 2; if (Number.isInteger(h) && t.slice(0, h) === t.slice(h)) return t.slice(0, h).trim();
   for (let i = Math.floor(t.length * 0.4); i < t.length * 0.6; i++) { const a = t.slice(0, i).trim(); if (a.length > 20 && t.slice(i).trim() === a) return a; } return t; }
+// Vision: read text/details from an image (menus, price lists, flyers, UI screenshots). OpenAI-style image_url parts; Meta first, NVIDIA VL fallback.
+export async function vision(prompt: string, dataUrl: string, max = 1200): Promise<AIResult> {
+  const t0 = Date.now(); const msgs = [{ role: "user", content: [{ type: "text", text: prompt }, { type: "image_url", image_url: { url: dataUrl } }] }];
+  for (const [p, base, key, model] of [["meta", META_BASE, process.env.MODEL_API_KEY, META_MODEL], ["nvidia", NV_BASE, process.env.NVIDIA_API_KEY, NV_MODEL]] as const) { if (!key) continue;
+    try { const r = await fetch(`${base}/chat/completions`, { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ model, messages: msgs, max_tokens: max }), signal: AbortSignal.timeout(40000) });
+      if (!r.ok) throw new Error(`${p} ${r.status}`); const t = String((await r.json()).choices?.[0]?.message?.content ?? "").trim(); if (t) return { text: t, provider: p, model, fallback: p === "nvidia", ms: Date.now() - t0 }; } catch (e) { console.warn(`[vision] ${(e as Error).message}`); } }
+  return { text: "", provider: "offline", model: "none", fallback: true, ms: Date.now() - t0 };
+}
