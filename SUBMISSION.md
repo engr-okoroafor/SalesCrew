@@ -1,3 +1,6 @@
+> Full hackathon submission pack: see [docs/submission/README.md](docs/submission/README.md) (also as PDF).
+> Live: https://salescrew.vercel.app · Repo: https://github.com/hildanonyelum-cell/SalesCrew
+
 # SalesCrew — paste-ready submission answers
 
 **Team Name:** SalesCrew
