@@ -40,3 +40,13 @@ export const PageHead = ({ title, sub, right }: { title: string; sub?: string; r
   <div className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-bold tracking-tight">{title}</h1>{sub && <p className="text-sm text-white/55 mt-1">{sub}</p>}</div><div className="flex flex-wrap gap-2">{right}</div></div>;
 export const money = (n: number, c: string = "NGN") => `${c === "NGN" ? "₦" : "$"}${Math.round(n).toLocaleString()}`;
 export const ago = (iso?: string) => { if (!iso) return ""; const s = (Date.now() - +new Date(iso)) / 1000; if (s < 0) return "in " + Math.round(-s / 3600) + "h"; if (s < 60) return "now"; if (s < 3600) return Math.round(s / 60) + "m"; if (s < 86400) return Math.round(s / 3600) + "h"; return Math.round(s / 86400) + "d"; };
+// Futuristic pager: neon prev/next, windowed page pills, jump. 50/page default.
+export function Pager({ page, total, per = 50, onPage }: { page: number; total: number; per?: number; onPage: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / per)); if (total <= per) return <div className="mt-3 text-right text-[11px] text-white/35">{total} item{total === 1 ? "" : "s"}</div>;
+  const win = [...new Set([1, page - 1, page, page + 1, pages].filter((p) => p >= 1 && p <= pages))].sort((a, b) => a - b);
+  const Btn = ({ p, children, on }: { p: number; children: ReactNode; on?: boolean }) => <motion.button whileHover={{ y: -2 }} whileTap={{ scale: .92 }} disabled={p < 1 || p > pages} onClick={() => onPage(p)}
+    className={`relative h-8 min-w-8 rounded-lg border px-2 font-mono text-xs transition disabled:opacity-30 ${on ? "border-[#39ff88] text-black" : "border-white/10 text-white/70 hover:border-[#22d3ee]/60 hover:text-[#22d3ee] hover:shadow-[0_0_14px_-4px_#22d3ee]"}`}>
+    {on && <motion.span layoutId="pg" className="absolute inset-0 rounded-lg bg-[#39ff88] shadow-[0_0_18px_-2px_#39ff88]" />}<span className="relative">{children}</span></motion.button>;
+  return <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><span className="text-[11px] text-white/40">{(page - 1) * per + 1}–{Math.min(page * per, total)} of {total}</span>
+    <div className="flex items-center gap-1"><Btn p={page - 1}>‹</Btn>{win.map((p, i) => <span key={p} className="flex items-center gap-1">{i > 0 && p - win[i - 1] > 1 && <span className="text-white/30">··</span>}<Btn p={p} on={p === page}>{String(p).padStart(2, "0")}</Btn></span>)}<Btn p={page + 1}>›</Btn></div></div>;
+}
