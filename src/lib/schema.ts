@@ -1,7 +1,7 @@
 // Workspace document schema (multi-tenant → multi-vendor). Shared by client & server.
 export type Channel = "whatsapp" | "messenger" | "instagram" | "email" | "sms" | "voice" | "web";
 export type Stage = "new" | "contacted" | "qualified" | "proposal" | "won" | "paid" | "nurture" | "lost";
-export type Vendor = { id: string; name: string; industry: string; city: string; currency: "NGN" | "USD"; color: string; logo?: string; active: boolean;
+export type Vendor = { id: string; name: string; industry: string; city: string; currency: "NGN" | "USD"; color: string; logo?: string; active: boolean; email?: string; owner?: string; timezone?: string;
   channels: { whatsapp?: { phoneNumberId?: string; wabaId?: string; display?: string; status: "connected" | "pending" | "off" };
     messenger?: { pageId?: string; pageName?: string; status: "connected" | "pending" | "off" }; instagram?: { igUserId?: string; handle?: string; status: "connected" | "pending" | "off" } };
   autoReply: boolean; hours: string; persona: string; knowledge?: string; docs?: { name: string; url?: string; chars: number; at: string }[]; bank?: BankAccount[]; tokens?: Record<string, string> /* server-only, stripped from API */ };
@@ -49,13 +49,32 @@ export const defaultTasks = (): Task[] => [
   { id: "t_reactivate", name: "Upsell paid customers after 14 days", kind: "reactivate-paid", schedule: "weekly", enabled: false, approval: true },
   { id: "t_digest", name: "Daily admin digest", kind: "digest", schedule: "daily", enabled: true, approval: false },
 ];
+export const PRINT_LAB_ID = "v_printlab";
+export const TEAM = (ids: string[]): Workspace["team"] => [{ id: "t1", name: "Ntianu Uzokwe", email: "onyikute2002@gmail.com", role: "owner", vendorIds: ids }, { id: "t2", name: "Hilda Okoronkwo", email: "hilda@salescrew.app", role: "admin", vendorIds: ids }];
+/** Print-Lab (owner: Ntianu Uzokwe) — professional print & academic document services. Used by the seed and by the loadWorkspace migration. */
+export function printLab(): { vendor: Vendor; products: Product[] } {
+  const id = PRINT_LAB_ID; const img = (q: string) => `https://image.pollinations.ai/prompt/${encodeURIComponent(q)}?width=800&height=600&nologo=true`;
+  const P = (n: string, name: string, category: string, price: number, desc: string, q: string, tags: string[], leadTime = "24–48 hrs"): Product => ({ id: `pl${n}`, vendorId: id, kind: "service", name, category, price, currency: "NGN", desc, media: [{ url: img(q), type: "image" }], leadTime, tags });
+  return { vendor: { id, name: "Print-Lab", owner: "Ntianu Uzokwe", email: "onyikute2002@gmail.com", industry: "Printing, branding & academic document services", city: "Nigeria", currency: "NGN", color: "#22d3ee", active: true, autoReply: true, timezone: "Africa/Lagos",
+      hours: "Mon–Sat 8am–7pm WAT", persona: "Professional, precise and reassuring. Confirms specifications (size, paper, finish, quantity, deadline) before quoting, and treats academic work with confidentiality.",
+      knowledge: "Print-Lab delivers premium monochrome and full-colour printing for every document type, plus large-format and promotional print: banners, business flyers and billboards. We also specialise in university project documents — BSc, MSc and PhD term papers, dissertations, theses and school projects — including formatting, binding (spiral, soft and hard cover) and fast turnaround. Contact: WhatsApp +234 802 993 6691 · onyikute2002@gmail.com.",
+      channels: { whatsapp: { display: "+2348029936691", status: "pending" }, messenger: { pageName: "Print-Lab", status: "off" }, instagram: { handle: "printlab.ng", status: "off" } } },
+    products: [
+      P("1", "Monochrome document printing", "Document printing", 50, "Crisp black-and-white printing for all document types — letters, reports, manuals and forms. Per A4 page; bulk discounts available.", "professional laser printer printing black and white documents office", ["print", "mono", "documents"], "Same day"),
+      P("2", "Full-colour document printing", "Document printing", 200, "Vibrant, colour-accurate printing for presentations, brochures, certificates and photo-rich documents. Per A4 page.", "vibrant full colour printed brochures and documents on desk", ["print", "colour", "documents"], "Same day"),
+      P("3", "Banners & roll-up stands", "Large format", 25000, "Weather-resistant flex and roll-up banners for events, shops and exhibitions, with design support. Priced from (6ft x 3ft).", "large colourful event banner roll up stand print shop", ["banner", "large-format", "events"]),
+      P("4", "Business flyers & handbills", "Marketing print", 35000, "Eye-catching A5/A4 business flyers on gloss or matte stock — ideal for launches and promotions. Priced per 500 copies.", "stack of glossy business flyers printing", ["flyers", "marketing"]),
+      P("5", "Billboard & large-format printing", "Large format", 150000, "High-resolution billboard and outdoor-signage printing on durable materials, sized to your board. Quote on request.", "large billboard advertising print outdoor city", ["billboard", "outdoor", "large-format"], "3–5 days"),
+      P("6", "University project & dissertation printing", "Academic", 15000, "Confidential printing, formatting and binding of BSc, MSc and PhD term papers, dissertations, theses and school projects — spiral, soft or hard-cover binding with embossed lettering.", "bound university thesis dissertation hardcover books gold lettering", ["academic", "dissertation", "thesis", "binding"]),
+    ] };
+}
 export function seedWorkspace(id: string): Workspace {
   const v1 = "v_amaka", v2 = "v_solar", v3 = "v_kora";
   const settings: Settings = { language: "en-US", autoTranslate: true, timezone: "Africa/Lagos", ai: { primary: "meta", temperature: 0.4, autoReply: true, humanHandoffKeyword: "HUMAN", replyMaxWords: 70 },
     calls: { defaultLang: "en", langs: ["en", "pcm", "ig", "yo", "ha"], autoBook: true, voiceVia: "whatsapp", recordCalls: true, workingHours: { start: "09:00", end: "18:00", days: [1, 2, 3, 4, 5, 6] }, slotMin: 30 },
     payments: { paystack: true, stripe: true, defaultCurrency: "NGN", transferDetails: "", bank: [{ bank: "Moniepoint MFB", accountName: "SalesCrew Collections", accountNumber: "0000000000", currency: "NGN", note: "Replace in Admin → Payments" }] }, capi: { pixelId: "", testEventCode: "", autoEvents: ["Lead", "Schedule", "Purchase", "Contact"] },
     notifications: { email: "", dailyDigest: true, hotLeadAlert: true }, outreach: { quietHours: "21:00-08:00", maxPerDay: 200, signature: "— Sent with SalesCrew" }, site: { defaultTarget: "vercel" } };
-  const vendors: Vendor[] = [
+  const vendors: Vendor[] = [printLab().vendor,
     { id: v1, name: "Rise & Eat", industry: "Food & events", city: "Port Harcourt", currency: "NGN", color: "#39ff88", active: true, autoReply: true, hours: "Mon–Sat 8:00–19:00", persona: "Warm, Nigerian-English friendly baker and caterer", channels: { whatsapp: { status: "connected", display: "+234 803 000 0000" }, messenger: { status: "connected", pageName: "MoneyMinds", pageId: "265491983319446" }, instagram: { status: "pending" } } },
     { id: v2, name: "SunGrid Solar Supplies", industry: "Energy goods & installation", city: "Lagos", currency: "NGN", color: "#ffd23f", active: true, autoReply: true, hours: "Mon–Fri 9:00–18:00", persona: "Technical, reassuring solar advisor", channels: { whatsapp: { status: "pending" }, messenger: { status: "off" }, instagram: { status: "off" } } },
     { id: v3, name: "Kora Consulting", industry: "B2B services (US)", city: "Austin, TX", currency: "USD", color: "#7c5cff", active: true, autoReply: false, hours: "Mon–Fri 9–5 CT", persona: "Crisp, consultative US B2B tone", channels: { messenger: { status: "off" }, instagram: { status: "off" }, whatsapp: { status: "off" } } },
@@ -119,5 +138,5 @@ export function seedWorkspace(id: string): Workspace {
     ],
     tasks: defaultTasks(), approvals: [],
     audit: [{ id: "a1", at: now(), actor: "system", action: "workspace.seeded", detail: "Demo data created" }], settings,
-    team: [{ id: "t1", name: "Chukwudifu Okoroafor", email: "owner@salescrew.app", role: "owner", vendorIds: [v1, v2, v3] }, { id: "t2", name: "Hilda", email: "hilda@salescrew.app", role: "admin", vendorIds: [v1, v2, v3] }] };
+    team: TEAM([v1, v2, v3, PRINT_LAB_ID]) };
 }

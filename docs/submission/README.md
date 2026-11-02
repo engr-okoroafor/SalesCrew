@@ -8,7 +8,7 @@
 - **Live (no login needed):** https://salescrew.vercel.app — demo brand **Rise & Eat**, Port Harcourt
 - **Code:** https://github.com/hildanonyelum-cell/SalesCrew
 - **Demo video (3 min):** TBD — YouTube link to be added
-- **Team:** Hilda Okoronkwo (hildanonyelum — product, go-to-market, repo owner) · Chukwudifu (Chuks) Okoroafor (engineering, product)
+- **Team:** Hilda Okoronkwo (hildanonyelum — product, go-to-market, repo owner) · Ntianu Uzokwe (onyikute2002@gmail.com — Print-Lab, operations & vendor success)
 
 ## Problem — our world
 In Nigeria, commerce happens in chat. Customers message at 11pm, in Pidgin or switching between English and Yoruba, across three different apps. Owners are baking, delivering or asleep, so replies come hours late and the customer buys elsewhere. Night staff, a call centre or a marketing agency costs more than most SMBs earn in a month. And when a Meta ad brings a customer who then pays inside WhatsApp, that sale is never reported back, so ad spend optimises for clicks instead of revenue.

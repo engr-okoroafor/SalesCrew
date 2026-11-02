@@ -6,7 +6,7 @@
 
 **Team Name:** SalesCrew
 
-**Team Members:** Hilda Okoronkwo (hildanonyelum) — repo owner, product & go-to-market · in collaboration with Chukwudifu (Chuks) Okoroafor — engineering & product
+**Team Members:** Hilda Okoronkwo (hildanonyelum) — repo owner, product & go-to-market · Ntianu Uzokwe (onyikute2002@gmail.com) — Print-Lab founder, operations & vendor success
 
 **Track:** Indie Dev Track
 

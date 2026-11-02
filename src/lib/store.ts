@@ -5,7 +5,7 @@
 import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { seedWorkspace, defaultTasks, type Workspace } from "./schema";
+import { seedWorkspace, defaultTasks, printLab, TEAM, PRINT_LAB_ID, type Workspace } from "./schema";
 
 export type Backend = "postgres" | "blob" | "file";
 export const backend = (): Backend => (process.env.DATABASE_URL ? "postgres" : process.env.BLOB_READ_WRITE_TOKEN ? "blob" : "file");
@@ -39,11 +39,15 @@ async function writeRaw(key: string, doc: Workspace) {
 
 export async function loadWorkspace(id: string): Promise<Workspace> {
   const c = cache.get(id); if (c && Date.now() - c.at < 1500) return c.doc;
-  let doc = await readRaw(id);
+  let doc = await readRaw(id); let dirty = false;
   if (!doc) { doc = seedWorkspace(id); await writeRaw(id, doc); }
   doc.engagements ??= []; // brand migration: Amaka's Oven & Events → Rise & Eat
   { const raw = JSON.stringify(doc); if (raw.includes("Amaka")) doc = JSON.parse(raw.replace(/Amaka(?:&apos;|'|’)s Oven(?: (?:&amp;|&) Events)?/g, "Rise & Eat").replace(/\bAmaka\b/g, "the Rise & Eat team")) as Workspace; }
    doc.tasks ??= defaultTasks(); doc.approvals ??= [];
+  // Print-Lab migration: add the vendor + services once, and refresh the team (owner Ntianu Uzokwe, admin Hilda).
+  if (!doc.vendors.some((v) => v.id === PRINT_LAB_ID)) { const pl = printLab(); doc.vendors.push(pl.vendor); doc.products.push(...pl.products); doc.team = TEAM(doc.vendors.map((v) => v.id)); dirty = true; }
+  if (doc.team?.some((t) => /Chukwudifu/i.test(t.name))) { doc.team = [...TEAM(doc.vendors.map((v) => v.id)), ...doc.team.filter((t) => !/Chukwudifu|^Hilda/i.test(t.name) && t.email !== "onyikute2002@gmail.com")]; dirty = true; }
+  if (dirty) await writeRaw(id, doc);
   cache.set(id, { at: Date.now(), doc }); return doc;
 }
 export async function saveWorkspace(doc: Workspace) { doc.updatedAt = new Date().toISOString(); cache.set(doc.id, { at: Date.now(), doc }); await writeRaw(doc.id, doc); }
