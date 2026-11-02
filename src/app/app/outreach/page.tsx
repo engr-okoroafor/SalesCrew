@@ -26,7 +26,7 @@ export default function Engage() {
 function Reach() {
   const { w, vendor, api, set } = useData(); const [mode, setMode] = useState<"text" | "call">("text"); const [sel, setSel] = useState<Set<string>>(new Set()); const [channel, setChannel] = useState("auto"); const [lang, setLang] = useState("en");
   const [drafts, setDrafts] = useState<Draft[]>([]); const [busy, setBusy] = useState(""); const [seg, setSeg] = useState("all"); const [q, setQ] = useState(""); const [page, setPage] = useState(1); const [cur, setCur] = useState<Call | null>(null); const [live, setLive] = useState(false);
-  useEffect(() => { const p = new URLSearchParams(location.search); const ids = p.get("leads") ?? p.get("lead"); if (ids) setSel(new Set(ids.split(","))); if (p.get("mode") === "call") setMode("call"); }, []);
+  useEffect(() => { const p = new URLSearchParams(location.search); const ids = p.get("leads") ?? p.get("lead"); if (ids) setSel(new Set(ids.split(","))); if (p.get("mode") === "call") setMode("call"); const c = p.get("channel"); if (c) setChannel(c); }, []);
   const leads = useMemo(() => (w?.leads ?? []).filter(inVendor(vendor)).filter((l) => l.stage !== "lost" && (seg === "all" || l.segment === seg) && (!q || `${l.name} ${l.company} ${l.source}`.toLowerCase().includes(q.toLowerCase()))).sort((a, b) => b.score - a.score), [w, vendor, seg, q]);
   if (!w) return null; const picked = w.leads.filter((l) => sel.has(l.id));
   const resolved = (l: Lead) => channel === "auto" ? chOf(w, l) : channel;

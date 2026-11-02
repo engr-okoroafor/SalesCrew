@@ -5,6 +5,7 @@ import { Icon } from "@/components/icons/Futur";
 import type { Workspace } from "@/lib/schema";
 import { useData, inVendor, upload } from "@/lib/client/data";
 import { Field, Modal, PageHead, money, toast, Dots, Tip } from "@/components/ui";
+import { AutoGrow } from "@/components/inputs";
 import { uid, type Product } from "@/lib/schema";
 export default function Products() {
   const { w, vendor, save, del } = useData(); const [e, setE] = useState<Product | null>(null); const [kind, setKind] = useState("all"); const [busy, setBusy] = useState(false); const fr = useRef<HTMLInputElement>(null); const [x, setX] = useState("");
@@ -26,7 +27,7 @@ export default function Products() {
       <Field label="Vendor"><select className="inp" value={e.vendorId} onChange={(x) => setE({ ...e, vendorId: x.target.value })}>{w.vendors.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</select></Field>
       <Field label={e.kind === "good" ? "Stock" : "Lead time"}>{e.kind === "good" ? <input type="number" className="inp" value={e.stock ?? 0} onChange={(x) => setE({ ...e, stock: +x.target.value })} /> : <input className="inp" value={e.leadTime ?? ""} onChange={(x) => setE({ ...e, leadTime: x.target.value })} />}</Field>
       <div className="md:col-span-2"><Field label="Tags (comma — used for upsell matching)"><input className="inp" value={e.tags.join(", ")} onChange={(x) => setE({ ...e, tags: x.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} /></Field></div>
-      <div className="md:col-span-3"><Field label="Description"><textarea className="inp" rows={3} value={e.desc} onChange={(x) => setE({ ...e, desc: x.target.value })} /></Field></div>
+      <div className="md:col-span-3"><Field label="Description"><AutoGrow className="inp" minRows={3} value={e.desc} onChange={(x) => setE({ ...e, desc: x.target.value })} /></Field></div>
       <div className="md:col-span-3"><div className="label mb-1">Photos & videos</div><div className="flex flex-wrap gap-2">{e.media.map((m, i) => <div key={i} className="relative">{m.type === "video" ? <video src={m.url} className="h-24 rounded-lg" controls /> : <img src={m.url} alt="" className="h-24 rounded-lg" />}<button onClick={() => setE({ ...e, media: e.media.filter((_, j) => j !== i) })} className="absolute right-1 top-1 rounded bg-black/70 px-1 text-xs">✕</button></div>)}
         <input ref={fr} type="file" hidden multiple accept="image/*,video/*" onChange={async (x) => { if (!x.target.files) return; setBusy(true); const f = await upload(x.target.files); setE({ ...e, media: [...e.media, ...f.map(({ url, type }) => ({ url, type }))] }); setBusy(false); }} />
         <Tip text="Upload JPG/PNG/WebP or MP4 (≤25MB). Stored in your persistent media store."><button onClick={() => fr.current?.click()} className="grid h-24 w-24 place-items-center rounded-lg border border-dashed border-[#39ff88]/40 text-[#39ff88]">{busy ? <Dots /> : "+ Upload"}</button></Tip>
@@ -65,8 +66,12 @@ function Expanded({ w, p, onClose, onEdit }: { w: Workspace; p: Product; onClose
   const link = typeof window !== "undefined" ? `${location.origin}/?p=${p.id}` : "";
   const text = posts[pick]?.text ?? `✨ ${p.name} — ${money(p.price, p.currency)} at ${v?.name ?? "our shop"}. ${p.desc} Order on WhatsApp today!`;
   const draft = async () => { setBusy("ai"); try { const j = await fetch("/api/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task: "post", vendorId: p.vendorId, productIds: [p.id], brief: `Promote ${p.name}`, targets: ["facebook", "instagram", "whatsapp"] }) }).then((r) => r.json()); setPosts(j.variants ?? []); setPick(0); if (j.fallback) toast(`AI fallback: ${j.provider}`); } catch { toast("AI draft failed — try again"); } setBusy(""); };
-  const publish = async () => { setBusy("pub"); try { const j = await fetch("/api/publish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vendorId: p.vendorId, text, image: posts[pick]?.image ?? p.media[0]?.url, targets: ["fb_feed", "ig_feed"] }) }).then((r) => r.json()); toast(j.post?.status === "posted" ? "Posted to Facebook & Instagram" : "Saved as draft — connect your Page in Channels to auto-post"); } catch { toast("Publish failed"); } setBusy(""); };
+  const publish = async () => { setBusy("pub"); try { const j = await fetch("/api/publish", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vendorId: p.vendorId, text, image: posts[pick]?.image ?? p.media[0]?.url, targets: ["fb_feed", "ig_feed"] }) }).then((r) => r.json()); toast(j.post?.status === "posted" ? "Posted to Facebook & Instagram" : j.error ? `Publish failed: ${j.error}` : "Saved as draft — connect this vendor's Page + IG in Admin → Channels to auto-post"); } catch { toast("Publish failed"); } setBusy(""); };
   const share = (u: string) => window.open(u, "_blank", "noopener");
+  // Interested = leads tagged with this product, or who asked about it in chat; Instagram variant keeps only IG-reachable leads.
+  const outreach = (ch?: string) => { const ids = w.leads.filter((l) => l.vendorId === p.vendorId && l.stage !== "lost" && (l.productIds.includes(p.id) || l.interests.some((i) => p.name.toLowerCase().includes(i.toLowerCase()))) && (!ch || l.channel === ch || w.conversations.some((c) => c.leadId === l.id && c.channel === ch))).map((l) => l.id);
+    if (!ids.length) return toast(ch ? "No Instagram leads interested in this yet — reply to IG comments in Engage first" : "No leads tagged with this product yet — tag leads in Leads → Products of interest");
+    location.href = `/app/outreach?leads=${ids.join(",")}${ch ? `&channel=${ch}` : ""}`; };
   const enc = encodeURIComponent;
   const actions: [string, string, () => void][] = [
     ["✨", busy === "ai" ? "Drafting…" : "AI draft post", draft],
@@ -74,8 +79,9 @@ function Expanded({ w, p, onClose, onEdit }: { w: Workspace; p: Product; onClose
     ["🟢", "Share to WhatsApp status/groups", () => share(`https://wa.me/?text=${enc(text + " " + link)}`)],
     ["📘", "Share on Facebook", () => share(`https://www.facebook.com/sharer/sharer.php?u=${enc(link)}&quote=${enc(text)}`)],
     ["𝕏", "Post on X", () => share(`https://x.com/intent/tweet?text=${enc(text)}&url=${enc(link)}`)],
-    ["📣", "Boost with Meta Ads", () => share("https://adsmanager.facebook.com/adsmanager/manage/campaigns")],
-    ["🎯", "Outreach to interested leads", () => { location.href = `/app/outreach?product=${p.id}`; }],
+    ["📣", "Boost with Meta Ads", () => { navigator.clipboard?.writeText(`${text}\n${link}`); toast("Caption copied — paste it as the ad's primary text"); share(`https://adsmanager.facebook.com/adsmanager/creation?act=&objective=OUTCOME_SALES`); }],
+    ["🎯", "Outreach to interested leads", () => outreach()],
+    ["📸", "Outreach to Instagram", () => outreach("instagram")],
     ["🔗", "Copy link + caption", () => { navigator.clipboard?.writeText(`${text}\n${link}`); toast("Copied"); }],
   ];
   return <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
@@ -88,6 +94,6 @@ function Expanded({ w, p, onClose, onEdit }: { w: Workspace; p: Product; onClose
       <div className="grid grid-cols-4 gap-2 text-center text-xs">{[["Views", a.views], ["Interested", a.interested], ["Buyers", a.buyers], ["Revenue", money(a.revenue, p.currency)]].map(([k, val]) => <div key={k as string} className="rounded-lg bg-black/30 p-2"><div className="text-[10px] uppercase text-white/40">{k}</div><b className="neon">{val}</b></div>)}</div>
       <div><div className="label mb-1">Market this {p.kind === "service" ? "service" : "product"}</div><div className="grid grid-cols-2 gap-1.5">{actions.map(([i, l, fn]) => <button key={l} disabled={!!busy && /…/.test(l)} onClick={fn} className="flex items-center gap-2 rounded-xl border border-[#39ff88]/20 bg-[#39ff88]/5 px-3 py-2 text-left text-xs transition hover:border-[#39ff88] hover:shadow-[0_0_14px_-4px_#39ff88]"><span>{i}</span>{l}</button>)}</div></div>
       {posts.length > 0 && <div className="space-y-2 rounded-xl border border-[#22d3ee]/20 bg-[#22d3ee]/5 p-3"><div className="flex gap-1">{posts.map((_, i) => <button key={i} onClick={() => setPick(i)} className={`chip ${pick === i ? "chip-on" : ""}`}>Variant {i + 1}</button>)}</div>
-        <div className="flex gap-3">{posts[pick]?.image && <img src={posts[pick].image} alt={`${p.name} promo`} className="h-24 w-24 rounded-lg object-cover" />}<textarea className="inp flex-1 text-xs" rows={4} value={posts[pick]?.text ?? ""} onChange={(e) => setPosts(posts.map((x, i) => i === pick ? { ...x, text: e.target.value } : x))} /></div></div>}
+        <div className="flex gap-3">{posts[pick]?.image && <img src={posts[pick].image} alt={`${p.name} promo`} className="h-24 w-24 rounded-lg object-cover" />}<AutoGrow className="inp flex-1 text-xs" minRows={4} value={posts[pick]?.text ?? ""} onChange={(e) => setPosts(posts.map((x, i) => i === pick ? { ...x, text: e.target.value } : x))} /></div></div>}
     </div></div>;
 }
