@@ -7,7 +7,7 @@
 
 - **Live (no login needed):** https://salescrew.vercel.app — demo brand **Rise & Eat**, Port Harcourt
 - **Code:** https://github.com/hildanonyelum-cell/SalesCrew
-- **Demo video (3 min):** https://youtu.be/3Wcyvw9igrM (Unlisted; placeholder — the v4 demo (~2:59) is being uploaded as Unlisted and will replace this link. It shows autonomous campaigns, realtime bot replies, and history-aware AI drafts.)
+- **Demo video (3 min):** https://youtu.be/3Wcyvw9igrM (Unlisted, ~2:59 — autonomous campaigns, realtime bot replies, history-aware AI drafts)
 - **Team:** Hilda Okoronkwo (hildanonyelum — product, go-to-market, repo owner) · Ntianu Uzokwe (onyikute2002@gmail.com — Print-Lab, operations & vendor success)
 
 ## Problem — our world

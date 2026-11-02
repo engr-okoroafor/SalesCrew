@@ -12,7 +12,7 @@
 
 **Problem statement:** Build for Your World
 
-**Most Viral Track X post:** (optional — paste link if posted)
+**Most Viral Track X post:** https://x.com/SalesCrewAI/status/2117274494620586246
 
 **Project Description:**
 In Port Harcourt, business happens in the DMs. A bakery like Rise & Eat gets "Abeg how much for 3-tier cake? I need am Saturday" on WhatsApp at 11:40pm, a price question on Instagram, and a wedding enquiry on Messenger — and the owner is asleep, baking, or stuck in traffic on Aba Road. By morning that customer has bought from someone who answered. Every missed reply is a lost sale, and hiring night staff, a call centre or a marketing agency is out of reach for most Nigerian SMBs.
@@ -27,7 +27,7 @@ It works today: the live demo at salescrew.vercel.app runs the full pipeline on 
 
 **Public GitHub Repository:** https://github.com/hildanonyelum-cell/SalesCrew
 
-**3-Minute Demo Video:** https://youtu.be/3Wcyvw9igrM (Unlisted; placeholder — the v4 demo (~2:59) is being uploaded as Unlisted and will replace this link. It shows autonomous campaigns, realtime bot replies, and history-aware AI drafts.)
+**3-Minute Demo Video:** https://youtu.be/3Wcyvw9igrM (Unlisted, ~2:59 — autonomous campaigns, realtime bot replies, history-aware AI drafts)
 
 **Describe your use of Meta products to build the submitted project:**
 - **Muse Spark 1.3 (`muse-spark-1.3`) via Meta Model API — the brain.** Every reasoning path runs on it first: the scoped WhatsApp/Messenger/IG booking agent, Pidgin and code-switched replies grounded in the vendor's uploaded knowledge base (menu photos, PDF price lists, Word policies), lead scoring and next-best action, Engage reply drafts, the Admin copilot that answers "who should I follow up today?", Autopilot tasks, and site generation. Called through the OpenAI-compatible `/v1/chat/completions` with `reasoning_effort: low` so a DM gets a reply in seconds.
