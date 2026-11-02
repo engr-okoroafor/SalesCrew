@@ -6,7 +6,7 @@ import { act } from "@/lib/engage";
 import { audit, setStage, remember } from "@/lib/pipeline";
 import { complete, prefer } from "@/lib/ai";
 import { uid, defaultTasks, type Approval, type Stage, type Task, type Workspace } from "@/lib/schema";
-export type Action = { type: "message" | "engage" | "publish" | "stage" | "digest" | "note"; payload: Record<string, unknown> };
+export type Action = { type: "message" | "engage" | "publish" | "schedule" | "stage" | "digest" | "note"; payload: Record<string, unknown> };
 type Plan = { title: string; detail: string; action: Action };
 const H = 3600e3; const STEP = { hourly: H, daily: 24 * H, weekly: 168 * H };
 const due = (t: Task, now: number) => !t.nextRun || +new Date(t.nextRun) <= now;
@@ -41,6 +41,7 @@ export async function execute(w: Workspace, a: Action, ws?: string) {
   if (a.type === "message") { const r = await sendToLead(w, String(p.leadId), String(p.text)); remember(w, w.leads.find((l) => l.id === p.leadId)?.vendorId ?? w.vendors[0].id, String(p.leadId), "promise", `Autopilot follow-up (${r.status})`); return r.status; }
   if (a.type === "engage") { let n = 0; for (const e of (w.engagements ?? []).filter((e) => (p.ids as string[]).includes(e.id) && e.status === "new")) { await act(w, e, e.kind === "comment" ? "both" : "dm"); n++; } return `${n} engaged`; }
   if (a.type === "publish") { let n = 0; for (const post of w.posts.filter((x) => (p.ids as string[]).includes(x.id) && x.status === "scheduled")) { const r = await runPost(ws ?? String(p.ws), post); post.status = Object.values(r).some((x) => (x as { ok?: boolean }).ok) ? "posted" : "failed"; post.result = JSON.stringify(r).slice(0, 1500); n++; } return `${n} published`; }
+  if (a.type === "schedule") { let n = 0; for (const post of w.posts.filter((x) => (p.ids as string[]).includes(x.id))) { if (typeof p.text === "string" && p.text.trim()) post.text = p.text; post.status = "scheduled"; n++; } return `${n} scheduled (cron publishes at the audience peak)`; }
   if (a.type === "stage") { setStage(w, String(p.leadId), p.stage as Stage); return "stage set"; }
   return "noted";
 }
