@@ -12,6 +12,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => { const j = await api("/api/db"); setW(j.workspace); setB(j.backend); setS(j.session); }, []);
   useEffect(() => { refresh(); const v = localStorage.getItem("sc_vendor"); if (v) setVendor(v); }, [refresh]);
   useEffect(() => { localStorage.setItem("sc_vendor", vendor); }, [vendor]);
+  // Light live sync: poll the ~300-byte /api/stats only while visible (20s), plus on focus; refetch the workspace only when its version changed.
+  useEffect(() => { let last = ""; const tick = async () => { if (document.hidden) return; try { const j = await api("/api/stats"); if (last && j.v && j.v !== last) await refresh(); last = j.v ?? last; } catch { /* offline */ } };
+    tick(); const t = setInterval(tick, 20000); addEventListener("focus", tick); document.addEventListener("visibilitychange", tick); return () => { clearInterval(t); removeEventListener("focus", tick); document.removeEventListener("visibilitychange", tick); }; }, [refresh]);
   const post = async (b: unknown) => { const j = await api("/api/db", b); if (j.workspace) setW(j.workspace); };
   return <C.Provider value={{ w, backend, session, vendor, setVendor, refresh, set: (p) => setW((o) => (o ? { ...o, ...p } : o)), api,
     save: (coll, item) => post({ op: "upsert", coll, item }), saveMany: (coll, items) => post({ op: "upsert", coll, items }), del: (coll, ids) => post({ op: "delete", coll, ids }), settings: (s) => post({ op: "settings", settings: s }) }}>{children}</C.Provider>;

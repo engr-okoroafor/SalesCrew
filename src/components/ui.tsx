@@ -24,9 +24,11 @@ export function Stat({ label, value, sub, tip }: { label: string; value: ReactNo
 }
 export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; wide?: boolean }) {
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === "Escape" && onClose(); addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [onClose]);
-  return <AnimatePresence>{open && <motion.div className="fixed inset-0 z-[500] grid place-items-center bg-black/60 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={onClose}>
-    <motion.div onMouseDown={(e) => e.stopPropagation()} initial={{ y: 20, scale: .97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 10, opacity: 0 }} className={`glass glass-hi max-h-[88vh] w-full overflow-auto scroll-thin bg-[#07100c]/90 p-5 ${wide ? "max-w-4xl" : "max-w-lg"}`}>
-      <div className="mb-4 flex items-center justify-between"><h3 className="text-lg font-semibold">{title}</h3><button onClick={onClose} className="text-white/50 hover:text-white">✕</button></div>{children}</motion.div></motion.div>}</AnimatePresence>;
+  const [m, setM] = useState(false); useEffect(() => setM(true), []); if (!m) return null;
+  // Portal to <body> so transformed/animated ancestors can't offset "fixed" (this was clipping the Leads editor at the top).
+  return createPortal(<AnimatePresence>{open && <motion.div className="fixed inset-0 z-[500] flex items-center justify-center overflow-y-auto bg-black/60 p-3 backdrop-blur-sm sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={onClose}>
+    <motion.div onMouseDown={(e) => e.stopPropagation()} initial={{ y: 20, scale: .97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 10, opacity: 0 }} className={`glass glass-hi my-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-auto scroll-thin bg-[#07100c]/95 p-5 sm:max-h-[calc(100dvh-3rem)] ${wide ? "max-w-4xl" : "max-w-lg"}`}>
+      <div className="mb-4 flex items-center justify-between"><h3 className="text-lg font-semibold">{title}</h3><button onClick={onClose} className="text-white/50 hover:text-white">✕</button></div>{children}</motion.div></motion.div>}</AnimatePresence>, document.body);
 }
 export function Toast() { const [m, setM] = useState<{ t: string; k: number } | null>(null);
   useEffect(() => { const h = (e: Event) => { setM({ t: (e as CustomEvent).detail, k: Date.now() }); setTimeout(() => setM(null), 3800); }; addEventListener("sc-toast", h); return () => removeEventListener("sc-toast", h); }, []);

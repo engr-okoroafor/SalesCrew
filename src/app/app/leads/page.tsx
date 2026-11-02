@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useData, inVendor } from "@/lib/client/data";
 import { Card, Chevron, Field, Modal, PageHead, Stat, Tip, toast, money, Dots, ago, Pager } from "@/components/ui";
+import { AutoGrow } from "@/components/inputs";
 import { ChannelIcon } from "@/components/icons/ChannelIcons";
 import { uid, type Lead, type Stage } from "@/lib/schema";
 const STAGES: Stage[] = ["new", "contacted", "qualified", "proposal", "won", "paid", "nurture", "lost"]; const TYPES = ["B2B", "B2C", "Reseller", "Government", "NGO"] as const;
@@ -76,7 +77,7 @@ function LeadForm({ l, set, onSave }: { l: Lead; set: (l: Lead) => void; onSave:
     <Field label="Value"><input type="number" className="inp" placeholder={v?.currency === "USD" ? "e.g. 450" : "e.g. 75000"} value={l.value || ""} onChange={(e) => u({ value: +e.target.value })} /></Field>
     <Field label="Campaign"><select className="inp" value={l.campaignId ?? ""} onChange={(e) => u({ campaignId: e.target.value || undefined })}><option value="">—</option>{w.campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
     <div className="md:col-span-3"><Field label="Products / services of interest"><div className="flex flex-wrap gap-1">{w.products.filter((p) => p.vendorId === l.vendorId).map((p) => <button key={p.id} onClick={() => u({ productIds: l.productIds.includes(p.id) ? l.productIds.filter((x) => x !== p.id) : [...l.productIds, p.id] })} className={`chip ${l.productIds.includes(p.id) ? "chip-on" : ""}`}>{p.kind === "service" ? "🛠" : "📦"} {p.name}</button>)}</div></Field></div>
-    <div className="md:col-span-3"><Field label="Notes"><textarea className="inp" rows={3} placeholder="e.g. Wants 50 small chops delivered to Woji on Friday; prefers Pidgin; budget ~₦60k" value={l.note} onChange={(e) => u({ note: e.target.value })} /></Field></div>
+    <div className="md:col-span-3"><Field label="Notes"><AutoGrow className="inp" minRows={3} placeholder="e.g. Wants 50 small chops delivered to Woji on Friday; prefers Pidgin; budget ~₦60k" value={l.note} onChange={(e) => u({ note: e.target.value })} /></Field></div>
     <Field label="Tags (comma)"><input className="inp" placeholder="vip, repeat, december" value={l.tags.join(", ")} onChange={(e) => u({ tags: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} /></Field>
     <div className="flex items-end md:col-span-2"><button className="btn ml-auto" disabled={!l.name} onClick={onSave}>Save lead</button></div></div>;
 }
