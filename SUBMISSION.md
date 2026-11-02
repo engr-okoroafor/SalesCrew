@@ -27,7 +27,7 @@ It works today: the live demo at salescrew.vercel.app runs the full pipeline on 
 
 **Public GitHub Repository:** https://github.com/hildanonyelum-cell/SalesCrew
 
-**3-Minute Demo Video:** https://youtu.be/lr8dIeVwMyY (Unlisted)
+**3-Minute Demo Video:** https://youtu.be/lr8dIeVwMyY (Unlisted; placeholder — the v4 demo (~2:59) is being uploaded as Unlisted and will replace this link. It shows autonomous campaigns, realtime bot replies, and history-aware AI drafts.)
 
 **Describe your use of Meta products to build the submitted project:**
 - **Muse Spark 1.3 (`muse-spark-1.3`) via Meta Model API — the brain.** Every reasoning path runs on it first: the scoped WhatsApp/Messenger/IG booking agent, Pidgin and code-switched replies grounded in the vendor's uploaded knowledge base (menu photos, PDF price lists, Word policies), lead scoring and next-best action, Engage reply drafts, the Admin copilot that answers "who should I follow up today?", Autopilot tasks, and site generation. Called through the OpenAI-compatible `/v1/chat/completions` with `reasoning_effort: low` so a DM gets a reply in seconds.
