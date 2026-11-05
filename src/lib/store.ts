@@ -5,6 +5,7 @@
 import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { applyRiseBrand } from "./brand";
 import { seedWorkspace, defaultTasks, printLab, TEAM, PRINT_LAB_ID, type Workspace } from "./schema";
 
 export type Backend = "postgres" | "blob" | "file";
@@ -46,6 +47,7 @@ export async function loadWorkspace(id: string): Promise<Workspace> {
    doc.tasks ??= defaultTasks(); doc.approvals ??= [];
   // Print-Lab migration: add the vendor + services once, and refresh the team (owner Ntianu Uzokwe, admin Hilda).
   if (!doc.vendors.some((v) => v.id === PRINT_LAB_ID)) { const pl = printLab(); doc.vendors.push(pl.vendor); doc.products.push(...pl.products); doc.team = TEAM(doc.vendors.map((v) => v.id)); dirty = true; }
+  if (applyRiseBrand(doc)) dirty = true;
   if (doc.team?.some((t) => /Chukwudifu/i.test(t.name))) { doc.team = [...TEAM(doc.vendors.map((v) => v.id)), ...doc.team.filter((t) => !/Chukwudifu|^Hilda/i.test(t.name) && t.email !== "onyikute2002@gmail.com")]; dirty = true; }
   if (dirty) await writeRaw(id, doc);
   cache.set(id, { at: Date.now(), doc }); return doc;
