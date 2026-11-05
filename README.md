@@ -8,7 +8,7 @@ SalesCrew finds prospects, cleans the data, writes the outreach, calls the ones 
 Demo business: **Rise & Eat**, a bakery + catering business in Port Harcourt (seed data, no setup needed).
 
 ## App (`/app`)
-Inbox → Leads → Products → Outreach → Call Lab → Bookings → CAPI → Site builder → Memory/NBA → Settings → Admin. The app is multi-tenant: each vendor connects its own WhatsApp, Facebook Page and Instagram account. See **[CAPABILITIES.md](CAPABILITIES.md)** for the full feature list, data store and channel-connect flow. All environment variables are in **[.env.example](.env.example)**.
+Inbox → Website Builder → Leads → Products → Engage → Bookings → CAPI → Settings → Admin. The app is multi-tenant: each business can connect several WhatsApp numbers plus its own Facebook Page and Instagram account. See **[CAPABILITIES.md](CAPABILITIES.md)** for the full feature list, data store and channel-connect flow. All environment variables are in **[.env.example](.env.example)**.
 
 - Open `/app/inbox` to use the guest demo workspace.
 - Use `/login` to sign up or sign in. It creates a free, persistent workspace stored in Neon or Vercel Blob.

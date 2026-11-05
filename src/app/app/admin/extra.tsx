@@ -6,6 +6,7 @@ import { useData } from "@/lib/client/data";
 import { Card, Dots, Field, Tip, Toggle, toast, ago, Chevron } from "@/components/ui";
 import { Icon } from "@/components/icons/Futur";
 import { ChannelIcon } from "@/components/icons/ChannelIcons";
+import { waNumbers } from "@/lib/brand";
 import type { Approval, BankAccount, Task, Vendor } from "@/lib/schema";
 const md = (s: string) => s.split("\n").map((l, i) => <p key={i} className="mb-1" dangerouslySetInnerHTML={{ __html: l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/^[-•] /, "• ") }} />);
 const EX = ["Who should I follow up today, and draft the messages", "Remind everyone with unpaid payment links", "Which products get views but no buyers? Suggest fixes", "Every Monday, DM people who commented on our posts", "Move hot leads with score above 80 to proposal"];
@@ -73,10 +74,10 @@ export function Channels() {
   const { w, set } = useData(); const [f, setF] = useState<Record<string, string>>({}); const [busy, setBusy] = useState(""); if (!w) return null;
   const save = async (v: Vendor, channel: string) => { const id = f[`${v.id}.${channel}.id`]; if (!id) return; setBusy(v.id + channel); const r = await fetch("/api/channels", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "manual", vendorId: v.id, channel, id, display: f[`${v.id}.${channel}.d`] || undefined }) }); const j = await r.json(); setBusy("");
     if (!r.ok) return toast(j.error ?? "Failed"); set({ vendors: j.vendors }); toast("Mapped — inbound messages on this id route to this vendor"); };
-  const ids = (v: Vendor) => ({ whatsapp: [v.channels.whatsapp?.phoneNumberId, v.channels.whatsapp?.display], messenger: [v.channels.messenger?.pageId, v.channels.messenger?.pageName], instagram: [v.channels.instagram?.igUserId, v.channels.instagram?.handle] });
+  const ids = (v: Vendor) => ({ whatsapp: [v.channels.whatsapp?.phoneNumberId, waNumbers(v).map((n) => n.display).filter(Boolean).join(", ")], messenger: [v.channels.messenger?.pageId, v.channels.messenger?.pageName], instagram: [v.channels.instagram?.igUserId, v.channels.instagram?.handle] });
   const all = w.vendors.flatMap((v) => Object.values(ids(v)).map(([id]) => id).filter(Boolean)); const dup = new Set(all.filter((x, i) => all.indexOf(x) !== i));
-  return <Card title="One WhatsApp number, Page and Instagram account per vendor" right={<Link href="/app/settings" className="btn-ghost !py-1 text-xs">Tokens & OAuth in Settings <Chevron /></Link>}>
-    <p className="mb-3 text-xs text-white/45">Inbound messages route by the id they arrive on, so each id can belong to one vendor only (duplicates are rejected).</p>
+  return <Card title="WhatsApp numbers, Page and Instagram per vendor" right={<Link href="/app/settings" className="btn-ghost !py-1 text-xs">Tokens & OAuth in Settings <Chevron /></Link>}>
+    <p className="mb-3 text-xs text-white/45">A business can list several WhatsApp numbers. Each phone-number id, Page id and Instagram id still routes to only one vendor.</p>
     <div className="space-y-3">{w.vendors.map((v) => <div key={v.id} className="rounded-xl border border-white/10 p-3"><div className="mb-2 flex items-center gap-2"><i className="h-2.5 w-2.5 rounded-full" style={{ background: v.color }} /><b>{v.name}</b></div>
       <div className="grid gap-2 md:grid-cols-3">{(Object.entries(ids(v)) as [string, (string | undefined)[]][]).map(([c, [id, disp]]) => <div key={c} className="rounded-lg bg-white/[.03] p-2 text-xs"><div className="mb-1 flex items-center gap-1.5"><ChannelIcon ch={c} size={14} /><b className="capitalize">{c}</b>{id ? <span className={`chip ml-auto ${dup.has(id) ? "text-red-300" : "chip-on"}`}>{dup.has(id) ? "duplicate!" : "mapped"}</span> : <span className="chip ml-auto">not set</span>}</div>
         <div className="mb-1 truncate text-white/50">{disp ?? "—"} {id && <code className="text-white/30">· {id}</code>}</div>

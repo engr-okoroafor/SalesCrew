@@ -4,11 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import type { SiteFile } from "@/lib/schema";
 type Line = { t: "in" | "out" | "err" | "ok"; s: string };
 const HELP = `Available commands:
-  ls [dir]  tree  pwd  cd <dir>  cat <file>  head <file>  wc <file>  grep <text> [file]
-  touch <file>  mkdir <dir>  rm <file>  mv <a> <b>  echo <text> [> file]
+  ls [dir]  tree  find [text]  pwd  cd <dir>  cat <file>  head <file>  tail [-n] <file>  wc <file>  grep <text> [file]
+  touch <file>  mkdir <dir>  rm <file>  cp <a> <b>  mv <a> <b>  echo <text> [> file]
   node -e "<js>"  npm install | npm run build | npm run dev | npm test
-  git status | git log  open <page.html>  date  whoami  env  history  clear  help`;
+  git status | git log  open <page.html>  date  whoami  uname  env  history  clear  help`;
 export function Terminal({ files, setFiles, onPreview }: { files: SiteFile[]; setFiles: (f: SiteFile[]) => void; onPreview: (p: string) => void }) {
+  const [tabs, setTabs] = useState([{ id: "t1", title: "bash" }]); const [active, setActive] = useState("t1");
+  return <div className="flex min-h-0 flex-1 flex-col bg-[#020403]">
+    <div className="flex items-center gap-1 overflow-x-auto border-b border-white/10 px-2 py-1 text-[11px]">{tabs.map((t) => <button key={t.id} onClick={() => setActive(t.id)} className={`flex items-center gap-1 rounded px-2 py-0.5 ${active === t.id ? "bg-white/10 text-[#39ff88]" : "text-white/50"}`}>{t.title}{tabs.length > 1 && <span onClick={(e) => { e.stopPropagation(); const next = tabs.filter((x) => x.id !== t.id); setTabs(next); if (active === t.id) setActive(next[0].id); }}>×</span>}</button>)}
+      <button className="rounded px-2 text-[#39ff88]" onClick={() => { const id = "t" + Math.random().toString(36).slice(2, 6); setTabs([...tabs, { id, title: `bash ${tabs.length + 1}` }]); setActive(id); }}>+</button></div>
+    {tabs.map((t) => <Shell key={t.id} active={t.id === active} files={files} setFiles={setFiles} onPreview={onPreview} />)}</div>;
+}
+function Shell({ files, setFiles, onPreview, active }: { files: SiteFile[]; setFiles: (f: SiteFile[]) => void; onPreview: (p: string) => void; active: boolean }) {
   const [lines, setLines] = useState<Line[]>([{ t: "ok", s: "SalesCrew sandbox shell — type `help`. Commands run locally in your browser against this project." }]);
   const [cwd, setCwd] = useState(""); const [inp, setInp] = useState(""); const [hist, setHist] = useState<string[]>([]); const [hi, setHi] = useState(-1);
   const end = useRef<HTMLDivElement>(null); const ref = useRef<HTMLInputElement>(null);
@@ -41,6 +48,10 @@ export function Terminal({ files, setFiles, onPreview }: { files: SiteFile[]; se
       case "mkdir": { const p = abs(args.filter((a) => a !== "-p")[0] ?? ""); if (!p) throw new Error("mkdir: missing dir"); setFiles([...files, { path: p + "/.keep", content: "" }]); break; }
       case "rm": { const t = args.filter((a) => !a.startsWith("-")); const p = abs(t[0] ?? ""); const left = files.filter((f) => f.path !== p && !f.path.startsWith(p + "/")); if (left.length === files.length) throw new Error(`rm: ${t[0]}: No such file`); setFiles(left); break; }
       case "mv": { const a = abs(args[0] ?? ""), b = abs(args[1] ?? ""); if (!file(args[0])) throw new Error(`mv: ${args[0]}: No such file`); setFiles(files.map((f) => f.path === a ? { ...f, path: b } : f)); break; }
+      case "cp": { const src = file(args[0] ?? ""); if (!src) throw new Error(`cp: ${args[0]}: No such file`); const b = abs(args[1] ?? ""); if (!b) throw new Error("cp: missing destination"); setFiles([...files.filter((f) => f.path !== b), { path: b, content: src.content }]); break; }
+      case "find": { const q = (args[0] ?? "").replace(/^\.\//, ""); res = files.map((f) => f.path).filter((p) => !p.endsWith(".keep") && (!q || p.includes(q))).sort().join("\n") || "(none)"; break; }
+      case "tail": { const n = args[0]?.startsWith("-") ? Math.abs(parseInt(args[0], 10)) || 10 : 10; const name = args[0]?.startsWith("-") ? args[1] : args[0]; const f = file(name ?? ""); if (!f) throw new Error(`tail: ${name}: No such file`); res = f.content.split("\n").slice(-n).join("\n"); break; }
+      case "uname": res = "Linux sc-sandbox x86_64"; break;
       case "open": { const p = abs(args[0] ?? "index.html"); if (!file(args[0] ?? "index.html")) throw new Error(`open: ${p}: not found`); onPreview(p); res = `Opening ${p} in preview…`; break; }
       case "node": { if (args[0] !== "-e" || !args[1]) { res = "Node.js v22 (sandbox). Use: node -e \"console.log(1+1)\""; break; } const logs: string[] = []; const con = { log: (...x: unknown[]) => logs.push(x.map((v) => typeof v === "string" ? v : JSON.stringify(v)).join(" ")) };
         const r = new Function("console", `"use strict";return (function(){${args[1].includes("return") || args[1].includes(";") ? args[1] : "return " + args[1]}})()`)(con); res = [...logs, r !== undefined ? String(r) : ""].filter(Boolean).join("\n"); break; }
@@ -59,9 +70,9 @@ export function Terminal({ files, setFiles, onPreview }: { files: SiteFile[]; se
     if (redir && !out.some((l) => l.t === "err")) { const p = abs(redir[2]); const ex = files.some((f) => f.path === p); setFiles(ex ? files.map((f) => f.path === p ? { ...f, content: res + "\n" } : f) : [...files, { path: p, content: res + "\n" }]); res = ""; }
     if (res) say(res, /✓/.test(res) ? "ok" : "out"); setLines((l) => [...l, ...out]);
   };
-  return <div onClick={() => ref.current?.focus()} className="flex min-h-0 flex-1 flex-col bg-[#020403] font-mono text-[12.5px]">
+  return <div onClick={() => ref.current?.focus()} className={`${active ? "flex" : "hidden"} min-h-0 flex-1 flex-col bg-[#020403] font-mono text-[12.5px]`}>
     <div className="flex items-center gap-2 border-b border-white/5 px-3 py-1.5 text-[11px] text-white/50"><span className="h-2.5 w-2.5 rounded-full bg-red-400/80" /><span className="h-2.5 w-2.5 rounded-full bg-amber-300/80" /><span className="h-2.5 w-2.5 rounded-full bg-[#39ff88]/80" /><span className="ml-2">bash — /project — sandbox</span><button className="ml-auto hover:text-white" onClick={() => setLines([])}>clear</button></div>
     <div className="min-h-0 flex-1 overflow-y-auto scroll-thin p-3 leading-5">{lines.map((l, i) => <pre key={i} className={`whitespace-pre-wrap ${l.t === "in" ? "text-[#39ff88]" : l.t === "err" ? "text-red-300" : l.t === "ok" ? "text-[#22d3ee]" : "text-[#d7ffe9]"}`}>{l.s}</pre>)}
-      <div className="flex items-center gap-2"><span className="text-[#39ff88]">{cwd || "~"} $</span><input ref={ref} autoFocus value={inp} spellCheck={false} aria-label="Terminal input" onChange={(e) => setInp(e.target.value)} className="flex-1 bg-transparent text-[#d7ffe9] caret-[#39ff88] outline-none"
+      <div className="flex items-center gap-2"><span className="text-[#39ff88]">{cwd || "~"} $</span><input ref={ref} autoFocus={active} value={inp} spellCheck={false} aria-label="Terminal input" onChange={(e) => setInp(e.target.value)} className="flex-1 bg-transparent text-[#d7ffe9] caret-[#39ff88] outline-none"
         onKeyDown={(e) => { if (e.key === "Enter") { const c = inp.trim(); setInp(""); setHi(-1); if (c) setHist((h) => [...h, c]); run(c); } else if (e.key === "ArrowUp") { e.preventDefault(); const n = hi < 0 ? hist.length - 1 : Math.max(0, hi - 1); if (hist[n] !== undefined) { setHi(n); setInp(hist[n]); } } else if (e.key === "ArrowDown") { e.preventDefault(); const n = hi + 1; if (n >= hist.length) { setHi(-1); setInp(""); } else { setHi(n); setInp(hist[n]); } } else if (e.key === "l" && e.ctrlKey) { e.preventDefault(); setLines([]); } }} /></div><div ref={end} /></div></div>;
 }

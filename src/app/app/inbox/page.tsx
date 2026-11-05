@@ -7,6 +7,7 @@ import { ChannelIcon } from "@/components/icons/ChannelIcons";
 import { I } from "@/components/icons/Futur";
 import { Tip, Chevron, Dots, toast, ago, money, Toggle } from "@/components/ui";
 import type { Conversation } from "@/lib/schema";
+import { channelLinks } from "@/lib/brand";
 import { AutoGrow } from "@/components/inputs";
 const CH = { whatsapp: "WhatsApp", messenger: "Messenger", instagram: "Instagram" } as Record<string, string>;
 const SHORT = { all: "All", whatsapp: "WA", messenger: "FB", instagram: "IG" } as Record<string, string>;
@@ -32,7 +33,8 @@ export default function Inbox() {
     if (j.delivery?.dryRun) toast(`Saved — live ${CH[conv.channel]} delivery needs this vendor's channel token (Admin → Vendors).`); else if (j.delivery?.ok) toast(`Sent via ${CH[conv.channel]} (Meta Graph)`); else if (j.delivery?.error) toast(`Meta error: ${j.delivery.error}`); if (j.ai?.fallback) toast(`AI fallback used: ${j.ai.provider}`); } finally { setBusy(""); } };
   const open = (x: Conversation) => { setSel(x.id); setMobileList(false); if (x.unread) act("markRead", {}, x); };
   if (!w) return null;
-  const autoOn = !!c?.aiOn && w.settings.ai.autoReply;
+  const autoOn = !!c?.aiOn && w.settings.ai.autoReply && v?.autoReply !== false;
+  const links = (vendor === "all" ? w.vendors : w.vendors.filter((x) => x.id === vendor)).flatMap(channelLinks);
   const windowOpen = c?.window24h ? Date.now() - +new Date(c.window24h) < 864e5 : c?.messages.some((m) => m.from === "customer" && Date.now() - +new Date(m.at) < 864e5);
   const send = async () => { if (!text.trim() && !media.length) return; await act(sim ? "inbound" : "send", { text, media: media.length ? media : undefined }); setText(""); setMedia([]); };
   const onFiles = async (f: FileList | null) => { if (!f?.length) return; setBusy("upload"); try { setMedia([...media, ...(await upload(f))]); } finally { setBusy(""); } };
@@ -40,6 +42,7 @@ export default function Inbox() {
   return <div className="glass grid h-[calc(100dvh-7.5rem)] grid-cols-1 overflow-hidden md:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_280px]">
     <div className={`min-h-0 flex-col border-r border-white/5 ${mobileList ? "flex" : "hidden md:flex"}`}>
       <div className="space-y-2 p-3"><input className="inp" placeholder="Search name, @handle, phone…" value={q} onChange={(e) => setQ(e.target.value)} />
+        {!!links.length && <div className="flex flex-wrap gap-1">{links.map((l) => <a key={l.href} href={l.href} target="_blank" rel="noopener" className="chip !py-0.5">{l.channel === "whatsapp" ? "WA" : l.channel === "messenger" ? "Messenger" : "IG"} · {l.label.replace(/^WhatsApp · |^WhatsApp /, "")}</a>)}</div>}
         <div className="grid grid-cols-4 gap-1 rounded-xl bg-black/30 p-1">{["all", "whatsapp", "messenger", "instagram"].map((k) => <Tip key={k} text={k === "all" ? "All channels" : `Only ${CH[k]}`} side="bottom">
           <button onClick={() => setCh(k)} className={`relative flex w-full items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-xs ${ch === k ? (k === "whatsapp" ? "text-white" : "text-black") : "text-white/60 hover:text-white"}`}>{ch === k && <motion.span layoutId="chf" className={`absolute inset-0 rounded-lg ${k === "whatsapp" ? "bg-[#0b0f0d] ring-1 ring-[#25D366]/70 shadow-[0_0_14px_-4px_#25D366]" : "bg-[#39ff88]"}`} />}<span className="relative flex items-center gap-1">{k !== "all" && <ChannelIcon ch={k} size={18} />}{SHORT[k]}</span></button></Tip>)}</div>
         {(() => { const waiting = convs.filter((x) => x.unread > 0 && x.messages.at(-1)?.from === "customer" && Date.now() - new Date(x.messages.at(-1)!.at).getTime() > 15 * 60e3); return waiting.length > 0 && <button onClick={() => { setOnlyUnread(true); open(waiting[0]); }} className="w-full rounded-lg border border-amber-400/40 bg-amber-400/10 px-2 py-1 text-left text-[11px] text-amber-200">⏰ {waiting.length} customer{waiting.length > 1 ? "s" : ""} waiting 15+ min for a reply — open oldest</button>; })()}
@@ -56,21 +59,23 @@ export default function Inbox() {
       <div className="flex flex-wrap items-center gap-3 border-b border-white/5 px-3 py-2.5 sm:px-4">
         <button className="text-[#39ff88] md:hidden" onClick={() => setMobileList(true)} aria-label="Back"><I.left /></button>
         <Avatar c={c} size={38} />
-        <div className="min-w-0"><div className="flex items-center gap-2 truncate font-semibold">{id.title}</div><div className="truncate text-xs text-white/45">{id.sub} · {CH[c.channel]} · {v?.name}</div></div>
+        <div className="min-w-0"><div className="flex items-center gap-2 truncate font-semibold">{id.title}</div><div className="flex items-center gap-1.5 truncate text-xs text-white/45">{v?.logo && <img src={v.logo} alt="" className="h-4 w-4 rounded-full object-cover" />}{id.sub} · {CH[c.channel]} · {v?.name}{c.channel === "messenger" && v?.channels.messenger?.pageName ? ` · ${v.channels.messenger.pageName}` : ""}{c.channel === "instagram" && v?.channels.instagram?.handle ? ` · @${v.channels.instagram.handle}` : ""}{c.channel === "whatsapp" && v?.channels.whatsapp?.display ? ` · ${v.channels.whatsapp.display}` : ""}</div></div>
         <div className="ml-auto flex items-center gap-2">
           <Tip text={c.unread ? "Mark as read" : "Mark as unread"} side="bottom"><button className="btn-ghost !px-2 !py-1 text-xs" onClick={() => act("markRead", { unread: !c.unread })}>{c.unread ? "Read" : "Unread"}</button></Tip>
           <Tip text={<>ON: AI answers every new customer message automatically on {CH[c.channel]}.<br />OFF: you reply manually or use “AI draft” to review first.{!w.settings.ai.autoReply && <><br /><b className="text-amber-300">Workspace auto-reply is off in Settings.</b></>}</>} side="bottom"><Toggle on={c.aiOn} onChange={() => act("toggleAI")} label={<span className="text-xs">Auto-reply</span>} /></Tip></div></div>
       <div className={`mx-3 mt-3 flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs sm:mx-4 ${windowOpen ? "border-[#39ff88]/30 bg-[#39ff88]/5 text-[#b9ffd6]" : "border-amber-400/30 bg-amber-400/5 text-amber-200"}`}>
         <span className={`h-2 w-2 rounded-full ${windowOpen ? "bg-[#39ff88] shadow-[0_0_8px_#39ff88]" : "bg-amber-400"}`} /><span className="flex-1">{windowOpen ? "24h reply window open" : "24h window closed — templates only"}</span>
-        <span className="hidden text-white/40 sm:inline">{autoOn ? "AI is answering" : "Manual mode"}</span>
+        <span className="hidden text-white/40 sm:inline">{autoOn ? "AI is answering" : c.aiOn ? "AI drafts for review" : "Manual mode"}</span>
         <Tip text="Meta allows free-form replies within 24h of the customer's last message. Outside it, use an approved template / message tag."><span className="cursor-help rounded-full border border-current px-1.5">?</span></Tip></div>
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto scroll-thin p-3 sm:p-4"><AnimatePresence initial={false}>{c.messages.map((m) => { const out = m.from !== "customer";
         return <motion.div key={m.id} initial={{ opacity: 0, y: 8, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} className={`flex ${out ? "justify-end" : "justify-start"}`}>
           <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm sm:max-w-[75%] ${out ? "bubble-out rounded-br-md" : "bubble-in rounded-bl-md"}`}>
+            {m.from === "ai" && v?.logo && <img src={v.logo} alt="Rise & Eat" className="mb-1 h-6 w-6 rounded-full object-cover" />}
             {m.media?.map((x, i) => x.type === "video" ? <video key={i} src={x.url} controls className="mb-1.5 max-h-60 rounded-lg" /> : <img key={i} src={x.url} alt="" className="mb-1.5 max-h-60 rounded-lg" />)}
             {m.text && <div className="whitespace-pre-wrap">{m.text}</div>}
             <div className="mt-1 flex items-center justify-end gap-1.5 text-[10px] text-white/45">{m.from === "ai" && <span className="text-[#22d3ee]">AI</span>}{m.from === "agent" && <span>You</span>}{new Date(m.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              {out && m.status && <Tip text={{ sent: `Sent through Meta Graph (${CH[c.channel]})`, delivered: "Delivered", read: "Read", "dry-run": "Saved here only — connect this vendor's channel token to deliver live", failed: "Delivery failed" }[m.status]}><span className={m.status === "dry-run" ? "text-amber-300" : m.status === "failed" ? "text-red-400" : "text-[#39ff88]"}>{m.status === "dry-run" ? "◌ local" : m.status === "failed" ? "✕" : "✓✓"}</span></Tip>}</div></div></motion.div>; })}</AnimatePresence>
+              {out && m.status && <Tip text={{ sent: `Sent through Meta Graph (${CH[c.channel]}) — it also shows in the ${CH[c.channel]} app`, delivered: "Delivered", read: "Read", "dry-run": "Saved here only — connect this vendor's channel token to deliver live", failed: "Delivery failed", draft: "AI draft — not sent. Auto-reply is off." }[m.status]}><span className={m.status === "dry-run" || m.status === "draft" ? "text-amber-300" : m.status === "failed" ? "text-red-400" : "text-[#39ff88]"}>{m.status === "draft" ? "draft" : m.status === "dry-run" ? "◌ local" : m.status === "failed" ? "✕" : "✓✓"}</span></Tip>}
+              {m.status === "draft" && <button className="underline" onClick={() => act("sendDraft", { messageId: m.id })}>Send</button>}</div></div></motion.div>; })}</AnimatePresence>
         {busy === "ai" && <div className="flex justify-end"><div className="bubble-out rounded-2xl px-4 py-3"><Dots /></div></div>}<div ref={end} /></div>
       {media.length > 0 && <div className="flex gap-2 px-4">{media.map((m, i) => <div key={i} className="relative">{m.type === "video" ? <video src={m.url} className="h-16 rounded-lg" /> : <img src={m.url} alt="" className="h-16 rounded-lg" />}<button onClick={() => setMedia(media.filter((_, j) => j !== i))} className="absolute -right-1 -top-1 rounded-full bg-black px-1 text-xs">✕</button></div>)}</div>}
       <div className="flex items-end gap-2 border-t border-white/5 p-2.5 sm:p-3">

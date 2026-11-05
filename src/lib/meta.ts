@@ -27,8 +27,10 @@ export function parseInbound(body: any): Inbound[] {
   const out: Inbound[] = [];
   if (body?.object === "whatsapp_business_account") {
     for (const e of body.entry ?? []) for (const c of e.changes ?? []) for (const m of c.value?.messages ?? [])
-      if (["text", "image", "video"].includes(m.type)) out.push({ channel: "whatsapp", from: m.from, to: c.value?.metadata?.phone_number_id, name: c.value?.contacts?.[0]?.profile?.name,
-        text: m.text?.body ?? m.image?.caption ?? m.video?.caption ?? `[${m.type}]`, id: m.id, media: m.image ? [{ id: m.image.id, type: "image" }] : m.video ? [{ id: m.video.id, type: "video" }] : undefined });
+      if (["text", "image", "video", "audio", "document", "order", "interactive", "button"].includes(m.type)) { const orderItems = (m.order?.product_items ?? []).map((i: { quantity?: number; product_retailer_id?: string }) => `${i.quantity ?? 1}× ${i.product_retailer_id ?? "item"}`).join(", ");
+        const text = m.text?.body ?? m.image?.caption ?? m.video?.caption ?? (m.type === "order" ? `WhatsApp order${m.order?.text ? `: ${m.order.text}` : ""}${orderItems ? ` — ${orderItems}` : ""}` : m.interactive?.button_reply?.title ?? m.interactive?.list_reply?.title ?? m.button?.text ?? `[${m.type}]`);
+        out.push({ channel: "whatsapp", from: m.from, to: c.value?.metadata?.phone_number_id, name: c.value?.contacts?.[0]?.profile?.name,
+        text, id: m.id, media: m.image ? [{ id: m.image.id, type: "image" }] : m.video ? [{ id: m.video.id, type: "video" }] : undefined }); }
   } else if (body?.object === "page" || body?.object === "instagram") {
     const channel: Channel = body.object === "page" ? "messenger" : "instagram";
     for (const e of body.entry ?? []) for (const ev of e.messaging ?? [])

@@ -20,11 +20,13 @@ export function EdgeTip({ text, children, maxW = 360 }: { text: ReactNode; child
 }
 // Cross-browser voice input: Web Speech API (Chrome, Edge, Safari) → MediaRecorder + /api/speech fallback (Firefox & others).
 export function useVoice(onText: (t: string) => void, lang = "en-NG") {
-  const [listening, setListening] = useState(false); const stopRef = useRef<() => void>(() => {});
+  const [listening, setListening] = useState(false); const stopRef = useRef<() => void>(() => {}); const muse = useRef(false);
+  useEffect(() => { fetch("/api/speech").then((r) => r.json()).then((j) => { muse.current = !!j.muse; }).catch(() => {}); }, []);
   const start = async () => {
     if (listening) { stopRef.current(); return; }
     const W = window as unknown as Record<string, unknown>; const SR = (W.SpeechRecognition || W.webkitSpeechRecognition) as (new () => { lang: string; interimResults: boolean; continuous: boolean; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> & { length: number } }) => void; onend: () => void; onerror: (e: { error: string }) => void; start: () => void; stop: () => void }) | undefined;
-    if (SR) { try { const r = new SR(); r.lang = lang; r.interimResults = false; r.continuous = false; r.onresult = (e) => onText(Array.from({ length: e.results.length }, (_, i) => e.results[i][0].transcript).join(" ")); r.onend = () => setListening(false); r.onerror = () => setListening(false); stopRef.current = () => r.stop(); setListening(true); r.start(); return; } catch { /* fall through to recorder */ } }
+    const browser = () => { if (!SR) return false; try { const r = new SR(); r.lang = lang; r.interimResults = false; r.continuous = false; r.onresult = (e) => onText(Array.from({ length: e.results.length }, (_, i) => e.results[i][0].transcript).join(" ")); r.onend = () => setListening(false); r.onerror = () => setListening(false); stopRef.current = () => r.stop(); setListening(true); r.start(); return true; } catch { return false; } };
+    if (!muse.current && browser()) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") { dispatchEvent(new CustomEvent("sc-toast", { detail: "This browser blocks microphone access — type instead." })); return; }
     try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); const mime = ["audio/webm", "audio/ogg", "audio/mp4"].find((m) => MediaRecorder.isTypeSupported?.(m)) ?? ""; const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); const chunks: Blob[] = [];
       rec.ondataavailable = (e) => chunks.push(e.data); rec.onstop = async () => { stream.getTracks().forEach((t) => t.stop()); setListening(false); const f = new FormData(); f.append("audio", new Blob(chunks, { type: mime || "audio/webm" }), "voice"); f.append("lang", lang.slice(0, 2));
