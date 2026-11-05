@@ -21,6 +21,12 @@ Inbox → Leads → Products → Outreach → Call Lab → Bookings → CAPI →
 The harness (`src/lib/ai.ts`) tries Meta first, falls back to NVIDIA on error/timeout/empty output, and finally to a scripted demo reply so the demo never dead-ends. Every response is tagged with provider + model in the UI.
 
 ## Meta platform compliance
+Public pages for the Meta app dashboard (also linked from the marketing site and Settings → Channels):
+
+- Privacy Policy: https://salescrew.vercel.app/privacy
+- Terms of Use: https://salescrew.vercel.app/terms
+- User data deletion instructions: https://salescrew.vercel.app/data-deletion
+
 - Replies only to people who message the business first (inside the customer-service window)
 - Task-specific: prices, availability, bookings, order status, delivery, rescheduling — no open-ended assistant chat
 - Off-topic → polite refusal + handoff; `HUMAN` pauses the agent on that thread

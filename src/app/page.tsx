@@ -68,6 +68,7 @@ export default function Home() {
       <section className="mx-auto max-w-4xl px-5 pb-20"><div className="glass p-6 text-sm text-slate-300">
         <b className="neon">Built on the allowed side of Meta&apos;s 2026 messaging rules.</b> SalesCrew is a task-specific customer-service & booking agent — not an open-ended assistant. It never initiates DMs, refuses off-topic requests, and offers a human on every thread.
         <div className="mt-3 text-xs text-slate-400">Models: Meta Muse Spark 1.3 (primary, Meta Model API) · NVIDIA Nemotron 3.5 (fallback) · Muse Voice Transcribe · SeamlessM4T. Built by Hilda Okoronkwo, Port Harcourt 🇳🇬</div>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs"><Link href="/privacy" className="underline decoration-emerald-400/40">Privacy Policy</Link><Link href="/terms" className="underline decoration-emerald-400/40">Terms of Use</Link><Link href="/data-deletion" className="underline decoration-emerald-400/40">Data deletion</Link></div>
       </div></section>
     </main>
   );
