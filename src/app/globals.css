@@ -1,0 +1,40 @@
+@import "tailwindcss";
+:root { --neon: #39ff88; --neon2: #22d3ee; --bg: #05070a; }
+html { color-scheme: dark; }
+body { background: radial-gradient(1200px 600px at 10% -10%, #0f3d2a 0%, transparent 60%), radial-gradient(900px 500px at 110% 10%, #1b1446 0%, transparent 55%), radial-gradient(700px 500px at 50% 120%, #062a2a 0%, transparent 60%), var(--bg); background-attachment: fixed; color: #e6f2ec; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+.glass { background: linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid rgba(57,255,136,.16); backdrop-filter: blur(16px) saturate(140%); border-radius: 1rem; box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 10px 40px -20px rgba(0,0,0,.6); }
+.glass-hi { border-color: rgba(57,255,136,.45); box-shadow: 0 0 0 1px rgba(57,255,136,.15), 0 0 40px -10px rgba(57,255,136,.45); }
+.neon { color: var(--neon); text-shadow: 0 0 18px rgba(57,255,136,.55); }
+.btn { display: inline-flex; align-items: center; gap: .4rem; background: var(--neon); color: #03140b; font-weight: 700; border-radius: .75rem; padding: .5rem .95rem; font-size: .875rem; box-shadow: 0 0 24px rgba(57,255,136,.35); transition: transform .15s, box-shadow .2s; }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 0 34px rgba(57,255,136,.55); } .btn:disabled { opacity: .5; transform: none; }
+.btn-ghost { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid rgba(57,255,136,.35); border-radius: .75rem; padding: .45rem .9rem; color: var(--neon); font-size: .875rem; transition: background .2s; }
+.btn-ghost:hover { background: rgba(57,255,136,.08); }
+.inp { background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: .65rem; padding: .5rem .7rem; font-size: .875rem; color: #e6f2ec; outline: none; width: 100%; }
+.inp:focus { border-color: rgba(57,255,136,.6); box-shadow: 0 0 0 3px rgba(57,255,136,.12); }
+select.inp option { background: #0b1210; }
+.chip { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; padding: .15rem .55rem; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04); }
+.chip-on { border-color: rgba(57,255,136,.6); color: var(--neon); background: rgba(57,255,136,.1); }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: rgba(230,242,236,.5); }
+input[type=checkbox].ck { appearance: none; width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid rgba(57,255,136,.5); display: inline-grid; place-content: center; cursor: pointer; transition: .15s; }
+input[type=checkbox].ck:checked { background: var(--neon); box-shadow: 0 0 12px rgba(57,255,136,.6); }
+input[type=checkbox].ck:checked::after { content: ""; width: 9px; height: 5px; border-left: 2px solid #03140b; border-bottom: 2px solid #03140b; transform: rotate(-45deg) translate(1px,-1px); }
+.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px } .scroll-thin::-webkit-scrollbar-thumb { background: rgba(57,255,136,.25); border-radius: 9px }
+/* Neon chevron */
+.chev { display: inline-block; transition: transform .25s cubic-bezier(.2,.8,.2,1), filter .25s; filter: drop-shadow(0 0 3px rgba(57,255,136,.5)); color: var(--neon); }
+.group:hover .chev, .chev-host:hover .chev { transform: translateX(4px); filter: drop-shadow(0 0 8px rgba(57,255,136,.95)); }
+.group:hover .chev-down, .chev-host:hover .chev-down { transform: translateY(2px) rotate(0deg); }
+.chev-open { transform: rotate(90deg) !important; }
+/* Futuristic loaders */
+@keyframes spin { to { transform: rotate(360deg) } } @keyframes pulse-ring { 0% { transform: scale(.6); opacity: .9 } 100% { transform: scale(1.6); opacity: 0 } }
+@keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
+.skel { background: linear-gradient(90deg, rgba(255,255,255,.04) 0, rgba(57,255,136,.12) 40%, rgba(255,255,255,.04) 80%); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; border-radius: .6rem; }
+.orbit { position: relative; width: 64px; height: 64px; } .orbit::before, .orbit::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--neon); border-right-color: var(--neon2); animation: spin 1s linear infinite; filter: drop-shadow(0 0 8px var(--neon)); }
+.orbit::after { inset: 12px; animation-duration: .7s; animation-direction: reverse; border-top-color: var(--neon2); border-right-color: transparent; border-left-color: var(--neon); }
+.orbit i { position: absolute; inset: 26px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 20px var(--neon); } .orbit i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--neon); animation: pulse-ring 1.2s infinite; }
+.dots span { display: inline-block; width: 6px; height: 6px; margin: 0 2px; border-radius: 50%; background: var(--neon); animation: pulse-ring 1s infinite alternate; box-shadow: 0 0 8px var(--neon) } .dots span:nth-child(2) { animation-delay: .2s } .dots span:nth-child(3) { animation-delay: .4s }
+.bubble-in { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.08); } .bubble-out { background: linear-gradient(135deg, rgba(57,255,136,.25), rgba(34,211,238,.18)); border: 1px solid rgba(57,255,136,.35); }
+.goog-te-banner-frame, .skiptranslate iframe { display: none !important; } body { top: 0 !important; } #google_translate_element { display: none; }
+/* Vibe IDE: calm futuristic generate state (breathing glow + spinner, no orbiting border stick) */
+@keyframes sc-breathe { 0%,100% { box-shadow: 0 0 0 0 rgba(34,211,238,.35), 0 0 18px -6px rgba(57,255,136,.4) } 50% { box-shadow: 0 0 0 6px rgba(34,211,238,0), 0 0 28px -4px rgba(57,255,136,.7) } }
+.sc-gen { animation: sc-breathe 1.8s ease-in-out infinite; background-image: linear-gradient(90deg, rgba(57,255,136,.08), rgba(34,211,238,.18), rgba(57,255,136,.08)); background-size: 200% 100%; }
+.sc-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(165,243,252,.25); border-top-color: #a5f3fc; animation: spin .8s linear infinite; }
