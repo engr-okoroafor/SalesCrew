@@ -9,9 +9,9 @@ import ScrollFab from "@/components/ScrollFab";
 import { I, type IconName } from "@/components/icons/Futur";
 import { motion, AnimatePresence } from "framer-motion";
 const NAV: [string, string, IconName, string][] = [
-  ["inbox", "Inbox", "inbox", "Unified WhatsApp · Messenger · Instagram conversations"], ["leads", "Leads", "leads", "Pipeline, scoring and lead capture"], ["products", "Products", "products", "Catalog, photos and buyer analytics"],
+  ["inbox", "Inbox", "inbox", "Unified WhatsApp · Messenger · Instagram conversations"], ["sites", "Website Builder", "sites", "Build and deploy websites with AI"], ["leads", "Leads", "leads", "Pipeline, scoring and lead capture"], ["products", "Products", "products", "Catalog, photos and buyer analytics"],
   ["outreach", "Engage", "engage", "Calls + messages + post engagement in one place"], ["bookings", "Bookings", "bookings", "Calendar and booked slots"], ["capi", "CAPI", "capi", "Send conversions back to Meta Ads"],
-  ["sites", "Site builder", "sites", "Build & deploy sites/apps with AI"], ["settings", "Settings", "settings", "Channels, AI, payments"], ["admin", "Admin", "admin", "Vendors, knowledge, autopilot, AI admin"]];
+  ["settings", "Settings", "settings", "Channels, AI, payments"], ["admin", "Admin", "admin", "Vendors, knowledge, autopilot, AI admin"]];
 function Shell({ children }: { children: React.ReactNode }) {
   const p = usePathname(); const { w, vendor, setVendor, session, backend, api } = useData();
   const [mini, setMini] = useState(false); const [drawer, setDrawer] = useState(false);

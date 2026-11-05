@@ -1,11 +1,26 @@
 // Interconnected sales pipeline: routing → lead → memory → booking → payment → CAPI → nurture.
 import "server-only";
 import crypto from "node:crypto";
+import { RISE_MME, RISE_PAGE_ASSET, RISE_VENDOR_ID, waNumbers } from "./brand";
 import { uid, type Workspace, type Lead, type Channel, type Stage } from "./schema";
 const sha = (s: string) => crypto.createHash("sha256").update(s.trim().toLowerCase()).digest("hex");
 export function audit(w: Workspace, actor: string, action: string, detail: string) { w.audit.unshift({ id: uid("a"), at: new Date().toISOString(), actor, action, detail }); w.audit = w.audit.slice(0, 500); }
+/** Explicit channel id → vendor. Empty string means "no id match" so keyword rules can still run. */
+export function matchInboundVendor(w: Workspace, m: { channel: string; to?: string }): string {
+  const to = m.to ?? "";
+  const rise = w.vendors.find((v) => v.id === RISE_VENDOR_ID || v.name === "Rise & Eat");
+  const byId = w.vendors.find((v) => waNumbers(v).some((n) => n.phoneNumberId && n.phoneNumberId === to) || v.channels.whatsapp?.phoneNumberId === to || v.channels.messenger?.pageId === to || v.channels.messenger?.mmeId === to || v.channels.instagram?.igUserId === to);
+  if (byId) return byId.id;
+  if (m.channel === "whatsapp" && rise && to && process.env.WHATSAPP_PHONE_NUMBER_ID && to === process.env.WHATSAPP_PHONE_NUMBER_ID) return rise.id;
+  if (m.channel === "messenger" && rise && (to === RISE_PAGE_ASSET || to === RISE_MME || (!!process.env.META_PAGE_ID && to === process.env.META_PAGE_ID))) return rise.id;
+  if (m.channel === "messenger") { const connected = w.vendors.filter((v) => v.channels.messenger?.status === "connected" && (v.channels.messenger.pageId || v.channels.messenger.mmeId)); if (connected.length === 1) return connected[0].id; }
+  if (m.channel === "instagram" && rise && to && process.env.IG_USER_ID && to === process.env.IG_USER_ID) return rise.id;
+  if (m.channel === "instagram") { const connected = w.vendors.filter((v) => v.channels.instagram?.handle && v.channels.instagram.status === "connected"); if (connected.length === 1) return connected[0].id; }
+  if (m.channel === "whatsapp" && rise) { const connected = w.vendors.filter((v) => v.channels.whatsapp?.status === "connected"); if (connected.length === 1 && connected[0].id === rise.id && to) return rise.id; }
+  return "";
+}
 export function routeVendor(w: Workspace, o: { channel?: Channel; text?: string; campaignId?: string; to?: string }) {
-  if (o.to) { const v = w.vendors.find((v) => v.channels.whatsapp?.phoneNumberId === o.to || v.channels.messenger?.pageId === o.to || v.channels.instagram?.igUserId === o.to); if (v) return v.id; }
+  if (o.to) { const id = matchInboundVendor(w, { channel: o.channel ?? "", to: o.to }); if (id) return id; }
   const rules = w.rules.filter((r) => r.active).sort((a, b) => a.priority - b.priority);
   for (const r of rules) { const c = r.when;
     if (c.campaignId && c.campaignId !== o.campaignId) continue; if (c.channel && c.channel !== o.channel) continue;

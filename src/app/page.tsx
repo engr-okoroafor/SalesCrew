@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { HERO, SERVICES, GALLERY } from "@/lib/photos";
+import { HERO, LOGO, SERVICES, GALLERY } from "@/lib/photos";
 import { WhatsAppIcon, MessengerIcon, InstagramIcon } from "@/components/icons/ChannelIcons";
 const steps = [
   ["💬", "Inbound autonomy", "Answers WhatsApp, Messenger & IG DMs 24/7 — only to people who message first, only about your services, always with a human handoff."],
@@ -14,7 +14,7 @@ const steps = [
 const SITE = "https://salescrew.vercel.app";
 const LD = [
   { "@context": "https://schema.org", "@type": "Organization", "@id": `${SITE}#org`, name: "SalesCrew", url: SITE, logo: `${SITE}/photos/hero-cake.jpg`, description: "Multi-vendor AI sales crew and marketplace: list many businesses and services, answer WhatsApp, Messenger and Instagram 24/7.", sameAs: ["https://github.com/hildanonyelum-cell/SalesCrew"] },
-  { "@context": "https://schema.org", "@type": ["LocalBusiness", "Bakery"], "@id": `${SITE}#rise-and-eat`, name: "Rise & Eat", image: `${SITE}/photos/hero-cake.jpg`, url: SITE, telephone: "+234 803 000 0000", priceRange: "₦₦", servesCuisine: "Nigerian, cakes, small chops",
+  { "@context": "https://schema.org", "@type": ["LocalBusiness", "Bakery"], "@id": `${SITE}#rise-and-eat`, name: "Rise & Eat", image: `${SITE}/brand/rise-and-eat-logo.jpg`, url: SITE, telephone: "+2347063356787", email: "riseandeat@gmail.com", priceRange: "₦₦", servesCuisine: "Nigerian, cakes, catering, small chops",
     address: { "@type": "PostalAddress", streetAddress: "GRA Phase 2", addressLocality: "Port Harcourt", addressRegion: "Rivers", postalCode: "500272", addressCountry: "NG" }, geo: { "@type": "GeoCoordinates", latitude: 4.8156, longitude: 7.0498 },
     openingHoursSpecification: [{ "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], opens: "08:00", closes: "19:00" }], areaServed: "Port Harcourt", parentOrganization: { "@id": `${SITE}#org` },
     hasOfferCatalog: { "@type": "OfferCatalog", name: "Rise & Eat services", itemListElement: SERVICES.map((v) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: v.title, description: v.desc } })) } },
@@ -40,8 +40,9 @@ export default function Home() {
         <div className="mt-8 flex gap-3"><Link href="/app/inbox" className="btn">Try it — Rise &amp; Eat, Port Harcourt</Link><a className="btn-ghost" href="https://github.com/hildanonyelum-cell/SalesCrew">GitHub</a></div>
         </div>
         <motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="glass relative overflow-hidden p-2">
-          <img src={HERO} alt="Chocolate celebration cake from Rise & Eat bakery, Port Harcourt" className="h-[380px] w-full rounded-xl object-cover" />
-          <div className="absolute bottom-5 left-5 right-5 rounded-xl bg-black/70 p-3 text-sm backdrop-blur"><div className="flex items-center gap-2"><WhatsAppIcon size={18} /><b>Customer · 11:04 PM</b></div><p className="mt-1 text-slate-200">Can I get a 6-inch chocolate cake for Saturday? 🎂</p><p className="mt-2 neon">SalesCrew: Yes! ₦25,000 — Sat 09:00 or 12:00 pickup?</p></div>
+          <img src={HERO} alt="Cakes for all events from the Rise & Eat services board" className="h-[380px] w-full rounded-xl object-cover" />
+          <img src={LOGO} alt="Rise & Eat" className="absolute left-5 top-5 h-16 w-16 rounded-full object-cover ring-2 ring-[#c6a15b]" />
+          <div className="absolute bottom-5 left-5 right-5 rounded-xl bg-black/70 p-3 text-sm backdrop-blur"><div className="flex items-center gap-2"><WhatsAppIcon size={18} /><b>Customer · 11:04 PM</b></div><p className="mt-1 text-slate-200">Can I get a 6-inch chocolate cake for Saturday? 🎂</p><p className="mt-2 neon">Rise & Eat: Saturday works. That cake isn’t priced on our board — I’ll quote it from similar Nigerian bakeries and confirm.</p></div>
         </motion.div>
       </section>
       <section aria-labelledby="multi" className="mx-auto max-w-6xl px-5 pb-12"><h2 id="multi" className="mb-2 text-2xl font-black">One account. <span className="neon">Many businesses &amp; services.</span></h2>
@@ -49,8 +50,9 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{VERTICALS.map(([i, t]) => <div key={t} className="glass flex items-center gap-3 p-4"><span className="text-2xl" aria-hidden>{i}</span><h3 className="font-bold">{t}</h3></div>)}</div>
         <div className="mt-4 flex flex-wrap gap-3"><Link href="/login" className="btn">List your business free →</Link><Link href="/app/admin" className="btn-ghost">Add more vendors</Link></div>
       </section>
-      <section aria-labelledby="featured" className="mx-auto max-w-6xl px-5 pb-12"><h2 id="featured" className="mb-1 text-2xl font-black">Featured vendor: Rise &amp; Eat — bakery &amp; events, Port Harcourt</h2>
-        <address className="mb-4 text-sm not-italic text-slate-400">Rise &amp; Eat · GRA Phase 2, Port Harcourt, Rivers, Nigeria · +234 803 000 0000 · Mon–Sat 08:00–19:00</address>
+      <section aria-labelledby="featured" className="mx-auto max-w-6xl px-5 pb-12"><div className="mb-3 flex items-center gap-3"><img src={LOGO} alt="Rise & Eat logo" className="h-16 w-16 rounded-full object-cover ring-2 ring-[#c6a15b]" /><h2 id="featured" className="text-2xl font-black">Featured vendor: Rise &amp; Eat — nourishing lives, celebrating every moment</h2></div>
+        <address className="mb-3 text-sm not-italic text-slate-400">Rise &amp; Eat · Port Harcourt · Menu board 0706 335 6787 · riseandeat@gmail.com · WhatsApp Business 0907 408 7284</address>
+        <div className="mb-4 flex flex-wrap gap-2 text-sm"><a className="btn-ghost" href="https://wa.me/2349074087284">Test WhatsApp</a><a className="btn-ghost" href="https://wa.me/2347063356787">Menu-board WhatsApp</a><a className="btn-ghost" href="https://m.me/61558190371192">Messenger · Rise &amp; Eat</a><a className="btn-ghost" href="https://ig.me/m/chukwudifu.okoroafor">Instagram</a></div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{SERVICES.map((v, k) => (
           <motion.div key={v.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: k * 0.06 }} whileHover={{ y: -4 }} className="glass tip overflow-hidden" data-tip={v.tip}>
             <img src={v.img} alt={v.title} loading="lazy" className="h-36 w-full object-cover" /><div className="p-3"><h3 className="font-bold neon">{v.title}</h3><p className="mt-1 text-xs text-slate-300">{v.desc}</p></div>
